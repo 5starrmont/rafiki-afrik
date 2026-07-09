@@ -1,0 +1,24 @@
+@import "tailwindcss";
+@import url('https://api.fontshare.com/v2/css?f[]=clash-display@600,700&f[]=satoshi@400,500&display=swap');
+
+@theme {
+  /* Brand Colors */
+  --color-primary: #8b4513;
+  --color-secondary: #f68d47;
+  --color-tertiary: #5d2906;
+
+  /* Typography */
+  --font-heading: 'Clash Display', sans-serif;
+  --font-body: 'Satoshi', sans-serif;
+}
+
+/* Apply default fonts globally */
+body {
+  font-family: var(--font-body);
+  color: #1a1a1a;
+  background-color: #ffffff;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+}
