@@ -19,8 +19,10 @@ export default function ImpactPulseComposer() {
   const [mediaFile, setMediaFile] = useState(null);
   const [mediaPreview, setMediaPreview] = useState(null);
 
-  // Toggle between immediate publishing and scheduling
-  const [publishMode, setPublishMode] = useState('now'); // 'now' or 'later'
+  const [publishMode, setPublishMode] = useState('now'); 
+  
+  const [scheduleDate, setScheduleDate] = useState('');
+  const [scheduleTime, setScheduleTime] = useState('');
 
   const [formData, setFormData] = useState({
     title: '',
@@ -30,11 +32,9 @@ export default function ImpactPulseComposer() {
     body: '',
     youtube_url: '',
     description: '', 
-    published_date: '',
     is_featured: false,
   });
 
-  // Custom Toolbar for the Rich Text Editor
   const quillModules = {
     toolbar: [
       [{ 'header': [2, 3, 4, false] }],
@@ -64,6 +64,10 @@ export default function ImpactPulseComposer() {
     setFormData(prev => ({ ...prev, body: content }));
   };
 
+  const handleDescriptionChange = (content) => {
+    setFormData(prev => ({ ...prev, description: content }));
+  };
+
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -82,16 +86,15 @@ export default function ImpactPulseComposer() {
       return;
     }
 
-    // Scheduling Validation
     let finalPublishDate = '';
     if (publishMode === 'now') {
       finalPublishDate = new Date().toISOString(); 
     } else {
-      if (!formData.published_date) {
-        alert("Please select a date and time to schedule this post.");
+      if (!scheduleDate || !scheduleTime) {
+        alert("Please select both a date and time to schedule this post.");
         return;
       }
-      finalPublishDate = new Date(formData.published_date).toISOString();
+      finalPublishDate = new Date(`${scheduleDate}T${scheduleTime}`).toISOString();
     }
 
     setIsSubmitting(true);
@@ -203,14 +206,9 @@ export default function ImpactPulseComposer() {
               </select>
             </div>
             
-            {/* ── Publishing Mode Toggle ── */}
             <div className="space-y-2">
               <label className="text-xs font-bold uppercase tracking-wider text-gray-500">Publishing Mode</label>
-              
-              {/* Premium Segmented Control Container */}
               <div className="relative flex bg-gray-100 p-1 rounded-xl border border-gray-200 w-full">
-                
-                {/* Physical Sliding Background Pill */}
                 <div 
                   className={`absolute left-1 top-1 bottom-1 w-[calc(50%-4px)] bg-white rounded-lg shadow-sm border border-gray-200/50 transition-transform duration-300 ease-out ${
                     publishMode === 'now' ? 'translate-x-0' : 'translate-x-full'
@@ -221,9 +219,7 @@ export default function ImpactPulseComposer() {
                   type="button"
                   onClick={() => setPublishMode('now')}
                   className={`relative z-10 flex-1 px-4 py-2 text-sm font-bold rounded-lg transition-colors duration-300 ${
-                    publishMode === 'now' 
-                      ? 'text-primary' 
-                      : 'text-gray-400 hover:text-gray-700'
+                    publishMode === 'now' ? 'text-primary' : 'text-gray-400 hover:text-gray-700'
                   }`}
                 >
                   Publish Now
@@ -232,30 +228,36 @@ export default function ImpactPulseComposer() {
                   type="button"
                   onClick={() => setPublishMode('later')}
                   className={`relative z-10 flex-1 px-4 py-2 text-sm font-bold rounded-lg transition-colors duration-300 ${
-                    publishMode === 'later' 
-                      ? 'text-orange-600' 
-                      : 'text-gray-400 hover:text-gray-700'
+                    publishMode === 'later' ? 'text-orange-600' : 'text-gray-400 hover:text-gray-700'
                   }`}
                 >
                   Schedule Later
                 </button>
               </div>
 
-              {/* Conditional Date Picker (Smooth Grid Expansion) */}
-              <div 
-                className={`grid transition-all duration-300 ease-in-out ${
-                  publishMode === 'later' ? 'grid-rows-[1fr] opacity-100 mt-2' : 'grid-rows-[0fr] opacity-0 mt-0'
-                }`}
-              >
+              <div className={`grid transition-all duration-300 ease-in-out ${publishMode === 'later' ? 'grid-rows-[1fr] opacity-100 mt-4' : 'grid-rows-[0fr] opacity-0 mt-0'}`}>
                 <div className="overflow-hidden">
-                  <input 
-                    type="datetime-local" 
-                    name="published_date"
-                    value={formData.published_date}
-                    onChange={handleChange}
-                    className="w-full bg-white border border-orange-200 rounded-lg px-4 py-2.5 text-sm text-gray-700 font-medium focus:outline-none focus:border-orange-500 shadow-sm mt-1"
-                  />
-                  <p className="text-[10px] text-gray-400 mt-1.5 font-medium">Post will remain hidden until this date.</p>
+                  <div className="flex gap-4 w-full">
+                    <div className="flex-1">
+                      <label className="block text-[10px] font-bold text-gray-400 mb-1.5 uppercase tracking-wider">Date</label>
+                      <input
+                        type="date"
+                        value={scheduleDate}
+                        onChange={(e) => setScheduleDate(e.target.value)}
+                        className="w-full bg-white border border-orange-200 rounded-lg px-4 py-2.5 text-sm text-gray-700 font-medium focus:outline-none focus:border-orange-500 shadow-sm"
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <label className="block text-[10px] font-bold text-gray-400 mb-1.5 uppercase tracking-wider">Time</label>
+                      <input
+                        type="time"
+                        value={scheduleTime}
+                        onChange={(e) => setScheduleTime(e.target.value)}
+                        className="w-full bg-white border border-orange-200 rounded-lg px-4 py-2.5 text-sm text-gray-700 font-medium focus:outline-none focus:border-orange-500 shadow-sm"
+                      />
+                    </div>
+                  </div>
+                  <p className="text-[10px] text-gray-400 mt-2 font-medium">Post will remain hidden until this exact date and time.</p>
                 </div>
               </div>
             </div>
@@ -275,15 +277,16 @@ export default function ImpactPulseComposer() {
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-wider text-gray-500">Short Description</label>
-                <textarea 
-                  rows="4"
-                  name="description"
-                  value={formData.description}
-                  onChange={handleChange}
-                  placeholder="A short summary of this video..." 
-                  className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm text-gray-700 focus:outline-none focus:border-orange-500 resize-none"
-                ></textarea>
+                <label className="text-xs font-bold uppercase tracking-wider text-gray-500">Description</label>
+                <div className="bg-white rounded-lg overflow-hidden border border-gray-200 focus-within:border-orange-500 transition-colors [&_.ql-toolbar.ql-snow]:border-none [&_.ql-toolbar.ql-snow]:border-b [&_.ql-toolbar.ql-snow]:border-gray-100 [&_.ql-toolbar.ql-snow]:bg-gray-50/50 [&_.ql-container.ql-snow]:border-none [&_.ql-editor]:min-h-[200px] [&_.ql-editor]:text-base [&_.ql-editor]:leading-relaxed [&_.ql-container.ql-snow]:font-inherit [&_.ql-editor]:font-inherit [&_.ql-editor]:font-body">
+                  <ReactQuill 
+                    theme="snow" 
+                    value={formData.description} 
+                    onChange={handleDescriptionChange} 
+                    modules={quillModules}
+                    className="text-gray-800"
+                  />
+                </div>
               </div>
             </>
           )}
@@ -317,7 +320,6 @@ export default function ImpactPulseComposer() {
 
               <div className="space-y-2">
                 <label className="text-xs font-bold uppercase tracking-wider text-gray-500">Article Body</label>
-                {/* ── Fixed Quill Editor Container ── */}
                 <div className="bg-white rounded-lg overflow-hidden border border-gray-200 focus-within:border-blue-500 transition-colors [&_.ql-toolbar.ql-snow]:border-none [&_.ql-toolbar.ql-snow]:border-b [&_.ql-toolbar.ql-snow]:border-gray-100 [&_.ql-toolbar.ql-snow]:bg-gray-50/50 [&_.ql-container.ql-snow]:border-none [&_.ql-editor]:min-h-[300px] [&_.ql-editor]:text-base [&_.ql-editor]:leading-relaxed [&_.ql-container.ql-snow]:font-inherit [&_.ql-editor]:font-inherit [&_.ql-editor]:font-body">
                   <ReactQuill 
                     theme="snow" 

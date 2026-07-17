@@ -40,8 +40,16 @@ export default function ImpactPulse() {
   }, [])
 
   const allContent = useMemo(() => {
+    const now = new Date();
+
     const formattedArticles = articles
-      .filter(a => a.is_published)
+      .filter(a => {
+        // Kick out drafts
+        if (!a.is_published) return false;
+        // Kick out future scheduled posts
+        const pubDate = new Date(a.published_date || a.created_at || now);
+        return pubDate <= now;
+      })
       .map(a => {
         const timeStr = a.reading_time || '5 min';
         return {
@@ -49,7 +57,7 @@ export default function ImpactPulse() {
           slug: a.slug,
           title: a.title,
           cType: 'article',
-          displayDate: a.published_date || a.created_at || new Date().toISOString(),
+          displayDate: a.published_date || a.created_at || now.toISOString(),
           img: a.featured_image,
           category: a.category?.name || 'Uncategorized',
           author: a.author || 'Rafiki Afrik',
@@ -58,12 +66,18 @@ export default function ImpactPulse() {
       });
 
     const formattedVideos = videos
-      .filter(v => v.is_published)
+      .filter(v => {
+        // Kick out drafts
+        if (!v.is_published) return false;
+        // Kick out future scheduled posts
+        const pubDate = new Date(v.published_date || v.created_at || now);
+        return pubDate <= now;
+      })
       .map(v => ({
         id: v.id,
         title: v.title,
         cType: 'video',
-        displayDate: v.published_date || v.created_at || new Date().toISOString(),
+        displayDate: v.published_date || v.created_at || now.toISOString(),
         img: v.thumbnail,
         category: v.category?.name || 'Uncategorized',
         url: v.youtube_url,

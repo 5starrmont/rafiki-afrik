@@ -19,6 +19,11 @@ export default function ImpactPulseEditor() {
   const [mediaFile, setMediaFile] = useState(null);
   const [mediaPreview, setMediaPreview] = useState(null);
 
+  const [postStatus, setPostStatus] = useState('live');
+  const [scheduleDate, setScheduleDate] = useState('');
+  const [scheduleTime, setScheduleTime] = useState('');
+  const [originalDate, setOriginalDate] = useState(null);
+
   const [formData, setFormData] = useState({
     title: '',
     category: '', 
@@ -27,9 +32,7 @@ export default function ImpactPulseEditor() {
     body: '',
     youtube_url: '',
     description: '', 
-    published_date: '', 
     is_featured: false,
-    is_published: true,
   });
 
   const quillModules = {
@@ -56,13 +59,6 @@ export default function ImpactPulseEditor() {
         const postRes = await fetch(endpoint);
         const postData = await postRes.json();
 
-        let formattedDate = '';
-        if (postData.published_date) {
-          const dateObj = new Date(postData.published_date);
-          const offset = dateObj.getTimezoneOffset() * 60000;
-          formattedDate = (new Date(dateObj - offset)).toISOString().slice(0, 16);
-        }
-
         setFormData({
           title: postData.title || '',
           category: postData.category ? postData.category.id : '',
@@ -71,10 +67,25 @@ export default function ImpactPulseEditor() {
           body: postData.body || '',
           youtube_url: postData.youtube_url || '',
           description: postData.description || '',
-          published_date: formattedDate,
           is_featured: postData.is_featured || false,
-          is_published: postData.is_published !== false,
         });
+
+        const existingDate = postData.published_date ? new Date(postData.published_date) : new Date();
+        setOriginalDate(existingDate);
+
+        const offset = existingDate.getTimezoneOffset() * 60000;
+        const localIso = new Date(existingDate - offset).toISOString();
+        setScheduleDate(localIso.split('T')[0]);
+        setScheduleTime(localIso.split('T')[1].slice(0, 5));
+
+        const now = new Date();
+        if (postData.is_published === false) {
+          setPostStatus('draft');
+        } else if (existingDate > now) {
+          setPostStatus('scheduled');
+        } else {
+          setPostStatus('live');
+        }
 
         const existingImage = type === 'article' ? postData.featured_image : postData.thumbnail;
         if (existingImage) {
@@ -104,6 +115,10 @@ export default function ImpactPulseEditor() {
     setFormData(prev => ({ ...prev, body: content }));
   };
 
+  const handleDescriptionChange = (content) => {
+    setFormData(prev => ({ ...prev, description: content }));
+  };
+
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -118,19 +133,34 @@ export default function ImpactPulseEditor() {
       return;
     }
 
+    let finalIsPublished = true;
+    let finalPublishDate = originalDate ? originalDate.toISOString() : new Date().toISOString();
+
+    if (postStatus === 'draft') {
+      finalIsPublished = false;
+    } else if (postStatus === 'scheduled') {
+      finalIsPublished = true;
+      if (!scheduleDate || !scheduleTime) {
+        alert("Please select both a date and time for rescheduling.");
+        return;
+      }
+      finalPublishDate = new Date(`${scheduleDate}T${scheduleTime}`).toISOString();
+    } else if (postStatus === 'live') {
+      finalIsPublished = true;
+      if (originalDate > new Date() || finalIsPublished === false) {
+        finalPublishDate = new Date().toISOString();
+      }
+    }
+
     setIsSubmitting(true);
 
     const submitData = new FormData();
     submitData.append('title', formData.title);
     submitData.append('is_featured', formData.is_featured);
-    submitData.append('is_published', formData.is_published);
+    submitData.append('is_published', finalIsPublished);
+    submitData.append('published_date', finalPublishDate);
     
     if (formData.category) submitData.append('category', formData.category);
-    
-    if (formData.published_date) {
-      const isoDate = new Date(formData.published_date).toISOString();
-      submitData.append('published_date', isoDate);
-    }
 
     const endpoint = type === 'article' 
       ? `http://127.0.0.1:8000/api/content/articles/${id}/` 
@@ -211,7 +241,7 @@ export default function ImpactPulseEditor() {
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-6">
+          <div className="grid grid-cols-2 gap-6 items-start">
             <div className="space-y-2">
               <label className="text-xs font-bold uppercase tracking-wider text-gray-500">Category</label>
               <select 
@@ -228,14 +258,71 @@ export default function ImpactPulseEditor() {
             </div>
             
             <div className="space-y-2">
-              <label className="text-xs font-bold uppercase tracking-wider text-gray-500">Publish Date & Time</label>
-              <input 
-                type="datetime-local" 
-                name="published_date"
-                value={formData.published_date}
-                onChange={handleChange}
-                className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-700 font-medium focus:outline-none focus:border-primary"
-              />
+              <label className="text-xs font-bold uppercase tracking-wider text-gray-500">Post Status & Visibility</label>
+              
+              <div className="relative flex bg-gray-100 p-1 rounded-xl border border-gray-200 w-full">
+                <div 
+                  className={`absolute left-1 top-1 bottom-1 w-[calc(33.333%-4px)] bg-white rounded-lg shadow-sm border border-gray-200/50 transition-transform duration-300 ease-out ${
+                    postStatus === 'live' ? 'translate-x-0' : 
+                    postStatus === 'draft' ? 'translate-x-[calc(100%+4px)]' : 
+                    'translate-x-[calc(200%+8px)]'
+                  }`}
+                />
+                
+                <button
+                  type="button"
+                  onClick={() => setPostStatus('live')}
+                  className={`relative z-10 flex-1 px-2 py-2 text-xs font-bold rounded-lg transition-colors duration-300 ${
+                    postStatus === 'live' ? 'text-green-600' : 'text-gray-400 hover:text-gray-700'
+                  }`}
+                >
+                  Live Now
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPostStatus('draft')}
+                  className={`relative z-10 flex-1 px-2 py-2 text-xs font-bold rounded-lg transition-colors duration-300 ${
+                    postStatus === 'draft' ? 'text-gray-800' : 'text-gray-400 hover:text-gray-700'
+                  }`}
+                >
+                  Draft
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPostStatus('scheduled')}
+                  className={`relative z-10 flex-1 px-2 py-2 text-xs font-bold rounded-lg transition-colors duration-300 ${
+                    postStatus === 'scheduled' ? 'text-orange-600' : 'text-gray-400 hover:text-gray-700'
+                  }`}
+                >
+                  Reschedule
+                </button>
+              </div>
+
+              <div className={`grid transition-all duration-300 ease-in-out ${postStatus === 'scheduled' ? 'grid-rows-[1fr] opacity-100 mt-4' : 'grid-rows-[0fr] opacity-0 mt-0'}`}>
+                <div className="overflow-hidden">
+                  <div className="flex gap-4 w-full">
+                    <div className="flex-1">
+                      <label className="block text-[10px] font-bold text-gray-400 mb-1.5 uppercase tracking-wider">Date</label>
+                      <input
+                        type="date"
+                        value={scheduleDate}
+                        onChange={(e) => setScheduleDate(e.target.value)}
+                        className="w-full bg-white border border-orange-200 rounded-lg px-4 py-2.5 text-sm text-gray-700 font-medium focus:outline-none focus:border-orange-500 shadow-sm"
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <label className="block text-[10px] font-bold text-gray-400 mb-1.5 uppercase tracking-wider">Time</label>
+                      <input
+                        type="time"
+                        value={scheduleTime}
+                        onChange={(e) => setScheduleTime(e.target.value)}
+                        className="w-full bg-white border border-orange-200 rounded-lg px-4 py-2.5 text-sm text-gray-700 font-medium focus:outline-none focus:border-orange-500 shadow-sm"
+                      />
+                    </div>
+                  </div>
+                  <p className="text-[10px] text-gray-400 mt-2 font-medium">Post will be hidden and auto-republished at this time.</p>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -252,14 +339,16 @@ export default function ImpactPulseEditor() {
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-wider text-gray-500">Short Description</label>
-                <textarea 
-                  rows="4"
-                  name="description"
-                  value={formData.description}
-                  onChange={handleChange}
-                  className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm text-gray-700 focus:outline-none focus:border-orange-500 resize-none"
-                ></textarea>
+                <label className="text-xs font-bold uppercase tracking-wider text-gray-500">Description</label>
+                <div className="bg-white rounded-lg overflow-hidden border border-gray-200 focus-within:border-orange-500 transition-colors [&_.ql-toolbar.ql-snow]:border-none [&_.ql-toolbar.ql-snow]:border-b [&_.ql-toolbar.ql-snow]:border-gray-100 [&_.ql-toolbar.ql-snow]:bg-gray-50/50 [&_.ql-container.ql-snow]:border-none [&_.ql-editor]:min-h-[200px] [&_.ql-editor]:text-base [&_.ql-editor]:leading-relaxed [&_.ql-container.ql-snow]:font-inherit [&_.ql-editor]:font-inherit [&_.ql-editor]:font-body">
+                  <ReactQuill 
+                    theme="snow" 
+                    value={formData.description || ''} 
+                    onChange={handleDescriptionChange} 
+                    modules={quillModules}
+                    className="text-gray-800"
+                  />
+                </div>
               </div>
             </>
           )}
@@ -291,7 +380,7 @@ export default function ImpactPulseEditor() {
 
               <div className="space-y-2">
                 <label className="text-xs font-bold uppercase tracking-wider text-gray-500">Article Body</label>
-                <div className="bg-white rounded-lg overflow-hidden border border-gray-200 focus-within:border-blue-500 transition-colors [&_.ql-toolbar.ql-snow]:border-none [&_.ql-toolbar.ql-snow]:border-b [&_.ql-toolbar.ql-snow]:border-gray-100 [&_.ql-toolbar.ql-snow]:bg-gray-50/50 [&_.ql-container.ql-snow]:border-none [&_.ql-editor]:min-h-[300px] [&_.ql-editor]:text-base [&_.ql-editor]:leading-relaxed">
+                <div className="bg-white rounded-lg overflow-hidden border border-gray-200 focus-within:border-blue-500 transition-colors [&_.ql-toolbar.ql-snow]:border-none [&_.ql-toolbar.ql-snow]:border-b [&_.ql-toolbar.ql-snow]:border-gray-100 [&_.ql-toolbar.ql-snow]:bg-gray-50/50 [&_.ql-container.ql-snow]:border-none [&_.ql-editor]:min-h-[300px] [&_.ql-editor]:text-base [&_.ql-editor]:leading-relaxed [&_.ql-container.ql-snow]:font-inherit [&_.ql-editor]:font-inherit [&_.ql-editor]:font-body">
                   <ReactQuill 
                     theme="snow" 
                     value={formData.body || ''} 

@@ -19,7 +19,8 @@ export default function ImpactPulseHub() {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('all');
-  const [statusFilter, setStatusFilter] = useState('all'); // New state for status tabs
+  const [categoryFilter, setCategoryFilter] = useState('all'); 
+  const [statusFilter, setStatusFilter] = useState('all');
   const [contentList, setContentList] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -29,6 +30,9 @@ export default function ImpactPulseHub() {
   
   const [editingCategoryId, setEditingCategoryId] = useState(null);
   const [editingCategoryName, setEditingCategoryName] = useState('');
+
+  // Bulk Selection State
+  const [selectedPosts, setSelectedPosts] = useState([]);
 
   const [deleteModal, setDeleteModal] = useState({
     isOpen: false,
@@ -92,8 +96,8 @@ export default function ImpactPulseHub() {
   const filteredList = contentList.filter(post => {
     const matchesSearch = post.title.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesType = filterType === 'all' || post.type === filterType;
+    const matchesCategory = categoryFilter === 'all' || post.categoryName === categoryFilter;
     
-    // Evaluate status dynamically
     const now = new Date();
     const postDate = new Date(post.date);
     const isScheduled = post.is_published && postDate > now;
@@ -105,8 +109,27 @@ export default function ImpactPulseHub() {
     if (statusFilter === 'scheduled') matchesStatus = isScheduled;
     if (statusFilter === 'drafts') matchesStatus = isDraft;
 
-    return matchesSearch && matchesType && matchesStatus;
+    return matchesSearch && matchesType && matchesCategory && matchesStatus;
   });
+
+  // Clear selections if the user changes filters or views
+  useEffect(() => {
+    setSelectedPosts([]);
+  }, [searchTerm, filterType, categoryFilter, statusFilter, activeView]);
+
+  const toggleSelectAll = () => {
+    if (selectedPosts.length === filteredList.length && filteredList.length > 0) {
+      setSelectedPosts([]);
+    } else {
+      setSelectedPosts(filteredList.map(post => post.id));
+    }
+  };
+
+  const toggleSelectPost = (id) => {
+    setSelectedPosts(prev => 
+      prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
+    );
+  };
 
   const handleAddCategory = async (e) => {
     e.preventDefault();
@@ -169,6 +192,10 @@ export default function ImpactPulseHub() {
     setDeleteModal({ isOpen: true, id, originalId, type, mode: 'content' });
   };
 
+  const triggerBulkDelete = () => {
+    setDeleteModal({ isOpen: true, id: null, originalId: null, type: null, mode: 'bulk-content' });
+  };
+
   const triggerDeleteCategory = (id) => {
     setDeleteModal({ isOpen: true, id, originalId: null, type: null, mode: 'category' });
   };
@@ -198,6 +225,26 @@ export default function ImpactPulseHub() {
       }
     } 
     
+    else if (mode === 'bulk-content') {
+      try {
+        const deletePromises = selectedPosts.map(postId => {
+          const post = contentList.find(p => p.id === postId);
+          if (!post) return Promise.resolve();
+          const endpoint = post.type === 'article'
+            ? `http://127.0.0.1:8000/api/content/articles/${post.originalId}/`
+            : `http://127.0.0.1:8000/api/content/videos/${post.originalId}/`;
+          return fetch(endpoint, { method: 'DELETE' });
+        });
+
+        await Promise.all(deletePromises);
+        setContentList(prev => prev.filter(item => !selectedPosts.includes(item.id)));
+        setSelectedPosts([]);
+      } catch (error) {
+        console.error("Error bulk deleting:", error);
+        alert("Network error while trying to delete some items.");
+      }
+    }
+
     else if (mode === 'category') {
       try {
         const response = await fetch(`http://127.0.0.1:8000/api/content/categories/${id}/`, {
@@ -301,7 +348,7 @@ export default function ImpactPulseHub() {
   );
 
   const renderLibrary = () => (
-    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20">
       <button onClick={() => setActiveView('hub')} className="inline-flex items-center gap-2 text-sm font-bold text-gray-400 hover:text-primary mb-6 transition-colors">
         <BackIcon className="w-4 h-4" /> Back to Hub
       </button>
@@ -333,22 +380,42 @@ export default function ImpactPulseHub() {
           <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input type="text" placeholder="Search publications..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full pl-12 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-secondary" />
         </div>
-        <select value={filterType} onChange={(e) => setFilterType(e.target.value)} className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-600 font-medium focus:outline-none focus:border-secondary cursor-pointer w-full md:w-auto">
-          <option value="all">All Formats</option>
-          <option value="article">Articles</option>
-          <option value="video">Videos</option>
-        </select>
+        
+        {/* Format and Category Dropdowns */}
+        <div className="flex gap-4 w-full md:w-auto">
+          <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} className="flex-1 md:flex-none bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-600 font-medium focus:outline-none focus:border-secondary cursor-pointer">
+            <option value="all">All Categories</option>
+            {categories.map(cat => (
+              <option key={cat.id} value={cat.name}>{cat.name}</option>
+            ))}
+            <option value="Uncategorized">Uncategorized</option>
+          </select>
+
+          <select value={filterType} onChange={(e) => setFilterType(e.target.value)} className="flex-1 md:flex-none bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-600 font-medium focus:outline-none focus:border-secondary cursor-pointer">
+            <option value="all">All Formats</option>
+            <option value="article">Articles</option>
+            <option value="video">Videos</option>
+          </select>
+        </div>
       </div>
       
-      <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
+      <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden relative">
         {isLoading ? (
           <div className="p-10 text-center text-gray-500 font-medium">Loading your library...</div>
         ) : filteredList.length === 0 ? (
           <div className="p-10 text-center text-gray-500 font-medium">No posts found matching your current filters.</div>
         ) : (
-          <table className="w-full text-left">
+          <table className="w-full text-left relative">
             <thead>
               <tr className="bg-gray-50/80 border-b border-gray-100 text-[10px] uppercase tracking-widest text-gray-500 font-bold">
+                <th className="p-5 w-12 text-center">
+                  <input 
+                    type="checkbox" 
+                    checked={selectedPosts.length === filteredList.length && filteredList.length > 0}
+                    onChange={toggleSelectAll}
+                    className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer"
+                  />
+                </th>
                 <th className="p-5">Title</th>
                 <th className="p-5">Format</th>
                 <th className="p-5">Category</th>
@@ -362,9 +429,18 @@ export default function ImpactPulseHub() {
                 const now = new Date();
                 const postDate = new Date(post.date);
                 const isScheduled = post.is_published && postDate > now;
+                const isSelected = selectedPosts.includes(post.id);
 
                 return (
-                  <tr key={post.id} className="hover:bg-gray-50/80 transition-colors group">
+                  <tr key={post.id} className={`hover:bg-gray-50/80 transition-colors group ${isSelected ? 'bg-blue-50/30' : ''}`}>
+                    <td className="p-5 text-center">
+                      <input 
+                        type="checkbox" 
+                        checked={isSelected}
+                        onChange={() => toggleSelectPost(post.id)}
+                        className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer"
+                      />
+                    </td>
                     <td className="p-5">
                       <p className="font-bold text-gray-900 text-sm mb-1">{post.title}</p>
                       <p className="text-xs text-gray-400 font-medium">By {post.author}</p>
@@ -548,6 +624,35 @@ export default function ImpactPulseHub() {
       {activeView === 'addCategory' && renderAddCategory()}
       {activeView === 'manageCategories' && renderManageCategories()}
 
+      {/* Floating Bulk Action Bar */}
+      {selectedPosts.length > 0 && activeView === 'library' && (
+        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-6 animate-in slide-in-from-bottom-8 z-40 border border-gray-700/50">
+          <div className="flex items-center gap-3">
+            <span className="flex items-center justify-center w-6 h-6 bg-blue-500 rounded-full text-xs font-bold text-white shadow-sm">
+              {selectedPosts.length}
+            </span>
+            <span className="text-sm font-medium text-gray-100">Items Selected</span>
+          </div>
+          
+          <div className="w-px h-6 bg-gray-700"></div>
+          
+          <button 
+            onClick={triggerBulkDelete}
+            className="flex items-center gap-2 text-sm font-bold text-red-400 hover:text-red-300 transition-colors group"
+          >
+            <TrashIcon className="w-4 h-4 group-hover:-translate-y-0.5 transition-transform" /> Bulk Delete
+          </button>
+          
+          <button 
+            onClick={() => setSelectedPosts([])}
+            className="p-1.5 ml-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-full transition-colors"
+            title="Clear Selection"
+          >
+            <CloseIcon className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
       {/* Reusable Custom Delete Modal Overlay */}
       {deleteModal.isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/40 backdrop-blur-sm animate-in fade-in duration-200">
@@ -556,12 +661,14 @@ export default function ImpactPulseHub() {
               <TrashIcon className="w-7 h-7 text-red-600" />
             </div>
             <h3 className="text-2xl font-heading font-bold text-gray-900 mb-2">
-              {deleteModal.mode === 'content' ? 'Delete Post?' : 'Delete Category?'}
+              {deleteModal.mode === 'content' ? 'Delete Post?' : 
+               deleteModal.mode === 'bulk-content' ? `Delete ${selectedPosts.length} Posts?` : 
+               'Delete Category?'}
             </h3>
             <p className="text-sm text-gray-500 mb-8 leading-relaxed">
-              {deleteModal.mode === 'content' 
-                ? "Are you sure you want to delete this post? This action is permanent and cannot be undone."
-                : "Are you sure you want to delete this category? Any content currently using this tag will be marked as uncategorized."}
+              {deleteModal.mode === 'content' ? "Are you sure you want to delete this post? This action is permanent and cannot be undone." :
+               deleteModal.mode === 'bulk-content' ? "Are you sure you want to delete all selected posts? This action is permanent and cannot be undone." :
+               "Are you sure you want to delete this category? Any content currently using this tag will be marked as uncategorized."}
             </p>
             <div className="flex justify-end gap-3">
               <button 
