@@ -7,6 +7,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     # This prefixes all our core routes with 'api/'
     path('api/', include('core.urls')), 
+    # This mounts your new content endpoints at /api/content/
+    path('api/content/', include('content.urls')),
 ]
 
 # Allows Django to serve uploaded images (like the Spotlight cover) during local development

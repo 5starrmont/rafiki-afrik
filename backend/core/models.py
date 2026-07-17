@@ -2,7 +2,7 @@ from django.db import models
 from django.utils import timezone
 from django.utils.text import slugify
 
-# --- MODULE 2 MODELS (EXISTING) ---
+# --- GLOBAL SITE SETTINGS ---
 
 class SiteSettings(models.Model):
     podcasts_produced_count = models.IntegerField(default=0)
@@ -47,65 +47,7 @@ class DynamicSpotlight(models.Model):
         return self.title
 
 
-# --- MODULE 3 MODELS (EXISTING) ---
-
-class Category(models.Model):
-    name = models.CharField(max_length=100)
-    slug = models.SlugField(unique=True, blank=True)
-
-    class Meta:
-        verbose_name_plural = "Categories"
-
-    def save(self, *args, **kwargs):
-        if not self.slug:
-            self.slug = slugify(self.name)
-        super().save(*args, **kwargs)
-
-    def __str__(self):
-        return self.name
-
-
-class Article(models.Model):
-    title = models.CharField(max_length=200)
-    slug = models.SlugField(unique=True, blank=True)
-    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, related_name='articles')
-    author = models.CharField(max_length=100, default="Rafiki Afrik Team")
-    featured_image = models.ImageField(upload_to='articles/')
-    excerpt = models.TextField(help_text="Short summary for the frontend card")
-    body = models.TextField(help_text="Full article content")
-    read_time = models.IntegerField(default=5, help_text="Estimated reading time in minutes")
-    publish_date = models.DateTimeField(default=timezone.now)
-    is_featured = models.BooleanField(default=False)
-
-    def save(self, *args, **kwargs):
-        if not self.slug:
-            self.slug = slugify(self.title)
-        super().save(*args, **kwargs)
-
-    def __str__(self):
-        return self.title
-
-
-class VideoStory(models.Model):
-    title = models.CharField(max_length=200)
-    slug = models.SlugField(unique=True, blank=True)
-    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, related_name='videos')
-    youtube_url = models.URLField(help_text="Direct link to the YouTube video")
-    thumbnail = models.ImageField(upload_to='videos/thumbnails/')
-    short_description = models.TextField()
-    publish_date = models.DateTimeField(default=timezone.now)
-    is_featured = models.BooleanField(default=False)
-
-    def save(self, *args, **kwargs):
-        if not self.slug:
-            self.slug = slugify(self.title)
-        super().save(*args, **kwargs)
-
-    def __str__(self):
-        return self.title
-
-
-# --- MODULE 4 MODELS (EXISTING) ---
+# --- TEAM ---
 
 class TeamMember(models.Model):
     name = models.CharField(max_length=100)
@@ -124,7 +66,7 @@ class TeamMember(models.Model):
         return self.name
 
 
-# --- MODULE 5 MODELS (NEW) ---
+# --- WAITLIST ---
 
 class WaitlistEntry(models.Model):
     full_name = models.CharField(max_length=200)
@@ -141,30 +83,8 @@ class WaitlistEntry(models.Model):
     def __str__(self):
         return f"{self.full_name} - {self.email}"
 
-        # --- MODULE 6: HADITHI AFRIKA (NEW) ---
 
-class Film(models.Model):
-    title = models.CharField(max_length=200)
-    slug = models.SlugField(unique=True, blank=True)
-    thumbnail = models.ImageField(upload_to='films/thumbnails/')
-    short_description = models.TextField()
-    youtube_url = models.URLField(help_text="Direct link to the YouTube video")
-    release_date = models.DateField()
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        verbose_name_plural = "Films"
-        ordering = ['-release_date']
-
-    def save(self, *args, **kwargs):
-        if not self.slug:
-            self.slug = slugify(self.title)
-        super().save(*args, **kwargs)
-
-    def __str__(self):
-        return self.title
-    
-    # --- MODULE 7: OUR SERVICES (NEW) ---
+# --- SERVICES ---
 
 class Service(models.Model):
     title = models.CharField(max_length=200)
@@ -186,17 +106,3 @@ class Service(models.Model):
 
     def __str__(self):
         return self.title
-    
-    # --- MODULE 8: NEWSLETTER (NEW) ---
-
-class NewsletterSubscriber(models.Model):
-    email = models.EmailField(unique=True)
-    subscribed_at = models.DateTimeField(auto_now_add=True)
-    is_active = models.BooleanField(default=True, help_text="Uncheck if the user unsubscribes")
-
-    class Meta:
-        verbose_name_plural = "Newsletter Subscribers"
-        ordering = ['-subscribed_at']
-
-    def __str__(self):
-        return self.email

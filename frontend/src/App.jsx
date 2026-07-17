@@ -1,22 +1,62 @@
-function App() {
-  return (
-    <div className="min-h-screen bg-white">
-      {/* Test Header */}
-      <header className="bg-primary p-6">
-        <h1 className="text-4xl text-white">Rafiki Afrik</h1>
-      </header>
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom'
+import 'react-quill-new/dist/quill.snow.css'; // <-- Safely injected here to protect your Fontshare imports!
 
-      {/* Test Body */}
-      <main className="p-6">
-        <p className="text-tertiary text-lg mb-4">
-          The fonts and brand colors are locked in and ready to go.
-        </p>
-        <button className="bg-secondary text-white px-6 py-2 rounded">
-          Secondary Button
-        </button>
-      </main>
-    </div>
+// Public Components
+import Navbar from './components/Navbar'
+
+// Public Pages
+import Home from './pages/Home'
+import About from './pages/About'
+import ImpactPulse from './pages/ImpactPulse'
+import HadithiAfrika from './pages/HadithiAfrika'
+import Services from './pages/Services'
+import Friends from './pages/Friends'
+
+// Admin Components & Pages
+import AdminLayout from './components/admin/AdminLayout'
+import AdminDashboard from './pages/admin/AdminDashboard' 
+import ImpactPulseHub from './pages/admin/ImpactPulseHub'
+import ImpactPulseComposer from './pages/admin/ImpactPulseComposer'
+import ImpactPulseEditor from './pages/admin/ImpactPulseEditor'
+
+// Temporary Placeholders
+const AdminHadithi = () => <div className="font-heading text-2xl font-bold text-primary mb-2">Hadithi Afrika Management (Coming Soon)</div>
+
+function AppLayout() {
+  const location = useLocation()
+  
+  const isAdminRoute = location.pathname.startsWith('/admin')
+
+  return (
+    <>
+      {!isAdminRoute && <Navbar />}
+
+      <Routes>
+        {/* Public Routes */}
+        <Route path="/" element={<Home />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/impact-pulse" element={<ImpactPulse />} />
+        <Route path="/hadithi-afrika" element={<HadithiAfrika />} />
+        <Route path="/services" element={<Services />} />
+        <Route path="/friends" element={<Friends />} />
+
+        {/* Admin Routes wrapped inside the shared AdminLayout */}
+        <Route path="/admin" element={<AdminLayout />}>
+          <Route index element={<AdminDashboard />} /> 
+          <Route path="impact-pulse" element={<ImpactPulseHub />} />
+          <Route path="impact-pulse/new/:type" element={<ImpactPulseComposer />} />
+          <Route path="impact-pulse/edit/:type/:id" element={<ImpactPulseEditor />} /> 
+          <Route path="hadithi-afrika" element={<AdminHadithi />} />
+        </Route>
+      </Routes>
+    </>
   )
 }
 
-export default App
+export default function App() {
+  return (
+    <Router>
+      <AppLayout />
+    </Router>
+  )
+}

@@ -1,17 +1,24 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
-from .models import SiteSettings, DynamicSpotlight, Category, Article, VideoStory, TeamMember, WaitlistEntry, Film, Service, NewsletterSubscriber
+
+# Imports from core (this app)
+from .models import SiteSettings, DynamicSpotlight, TeamMember, WaitlistEntry, Service
 from .serializers import (
     SiteSettingsSerializer, 
     DynamicSpotlightSerializer,
+    TeamMemberSerializer,
+    WaitlistEntrySerializer,
+    ServiceSerializer
+)
+
+# Imports from content (moved app)
+from content.models import Category, Article, VideoStory, Film, NewsletterSubscriber
+from content.serializers import (
     CategorySerializer,
     ArticleSerializer,
     VideoStorySerializer,
-    TeamMemberSerializer,
-    WaitlistEntrySerializer,
     FilmSerializer,
-    ServiceSerializer,
     NewsletterSubscriberSerializer
 )
 
@@ -41,13 +48,15 @@ def get_categories(request):
 
 @api_view(['GET'])
 def get_latest_articles(request):
-    articles = Article.objects.order_by('-publish_date')[:6]
+    # Only fetch published articles
+    articles = Article.objects.filter(is_published=True).order_by('-published_date')[:6]
     serializer = ArticleSerializer(articles, many=True, context={'request': request})
     return Response(serializer.data)
 
 @api_view(['GET'])
 def get_latest_videos(request):
-    videos = VideoStory.objects.order_by('-publish_date')[:6]
+    # Only fetch published video stories
+    videos = VideoStory.objects.filter(is_published=True).order_by('-published_date')[:6]
     serializer = VideoStorySerializer(videos, many=True, context={'request': request})
     return Response(serializer.data)
 
@@ -81,7 +90,7 @@ def get_services(request):
     serializer = ServiceSerializer(services, many=True, context={'request': request})
     return Response(serializer.data)
 
-# --- MODULE 8 (NEW) ---
+# --- MODULE 8 ---
 @api_view(['POST'])
 def subscribe_newsletter(request):
     """Receives an email from the footer and adds it to the newsletter list"""
