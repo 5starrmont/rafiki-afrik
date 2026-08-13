@@ -1,5 +1,4 @@
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom'
-import 'react-quill-new/dist/quill.snow.css'; // <-- Safely injected here to protect your Fontshare imports!
 
 // Public Components
 import Navbar from './components/Navbar'
@@ -8,6 +7,7 @@ import Navbar from './components/Navbar'
 import Home from './pages/Home'
 import About from './pages/About'
 import ImpactPulse from './pages/ImpactPulse'
+import ImpactPulseReader from './pages/ImpactPulseReader'
 import HadithiAfrika from './pages/HadithiAfrika'
 import Services from './pages/Services'
 import Friends from './pages/Friends'
@@ -36,6 +36,7 @@ function AppLayout() {
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />
         <Route path="/impact-pulse" element={<ImpactPulse />} />
+        <Route path="/impact-pulse/:id" element={<ImpactPulseReader />} />
         <Route path="/hadithi-afrika" element={<HadithiAfrika />} />
         <Route path="/services" element={<Services />} />
         <Route path="/friends" element={<Friends />} />

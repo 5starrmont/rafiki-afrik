@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import ReactQuill from 'react-quill-new';
+import JoditEditor from 'jodit-react';
 
 // SVGs
 const BackIcon = ({ className }) => <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>;
@@ -35,14 +35,17 @@ export default function ImpactPulseComposer() {
     is_featured: false,
   });
 
-  const quillModules = {
-    toolbar: [
-      [{ 'header': [2, 3, 4, false] }],
-      ['bold', 'italic', 'underline', 'strike', 'blockquote'],
-      [{'list': 'ordered'}, {'list': 'bullet'}],
-      ['link'],
-      ['clean']
-    ],
+  // Clean Configuration for Jodit Editor
+  const editorConfig = {
+    readonly: false,
+    placeholder: 'Start writing your amazing content here...',
+    hidePoweredByJodit: true,
+    toolbarAdaptive: false,
+    buttons: ['bold', 'italic', 'underline', 'strikethrough', '|', 'ul', 'ol', '|', 'outdent', 'indent', '|', 'font', 'fontsize', 'brush', '|', 'link', 'align', 'undo', 'redo'],
+    style: {
+      fontFamily: 'inherit',
+      fontSize: '16px',
+    }
   };
 
   useEffect(() => {
@@ -278,13 +281,12 @@ export default function ImpactPulseComposer() {
               </div>
               <div className="space-y-2">
                 <label className="text-xs font-bold uppercase tracking-wider text-gray-500">Description</label>
-                <div className="bg-white rounded-lg overflow-hidden border border-gray-200 focus-within:border-orange-500 transition-colors [&_.ql-toolbar.ql-snow]:border-none [&_.ql-toolbar.ql-snow]:border-b [&_.ql-toolbar.ql-snow]:border-gray-100 [&_.ql-toolbar.ql-snow]:bg-gray-50/50 [&_.ql-container.ql-snow]:border-none [&_.ql-editor]:min-h-[200px] [&_.ql-editor]:text-base [&_.ql-editor]:leading-relaxed [&_.ql-container.ql-snow]:font-inherit [&_.ql-editor]:font-inherit [&_.ql-editor]:font-body">
-                  <ReactQuill 
-                    theme="snow" 
-                    value={formData.description} 
-                    onChange={handleDescriptionChange} 
-                    modules={quillModules}
-                    className="text-gray-800"
+                <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                  <JoditEditor
+                    value={formData.description}
+                    config={{ ...editorConfig, height: 250 }}
+                    onBlur={handleDescriptionChange}
+                    onChange={() => {}} // Keeps React happy without causing re-renders mid-type
                   />
                 </div>
               </div>
@@ -320,13 +322,12 @@ export default function ImpactPulseComposer() {
 
               <div className="space-y-2">
                 <label className="text-xs font-bold uppercase tracking-wider text-gray-500">Article Body</label>
-                <div className="bg-white rounded-lg overflow-hidden border border-gray-200 focus-within:border-blue-500 transition-colors [&_.ql-toolbar.ql-snow]:border-none [&_.ql-toolbar.ql-snow]:border-b [&_.ql-toolbar.ql-snow]:border-gray-100 [&_.ql-toolbar.ql-snow]:bg-gray-50/50 [&_.ql-container.ql-snow]:border-none [&_.ql-editor]:min-h-[300px] [&_.ql-editor]:text-base [&_.ql-editor]:leading-relaxed [&_.ql-container.ql-snow]:font-inherit [&_.ql-editor]:font-inherit [&_.ql-editor]:font-body">
-                  <ReactQuill 
-                    theme="snow" 
-                    value={formData.body} 
-                    onChange={handleBodyChange} 
-                    modules={quillModules}
-                    className="text-gray-800"
+                <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                  <JoditEditor
+                    value={formData.body}
+                    config={{ ...editorConfig, height: 500 }}
+                    onBlur={handleBodyChange}
+                    onChange={() => {}}
                   />
                 </div>
               </div>

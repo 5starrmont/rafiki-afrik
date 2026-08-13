@@ -3,7 +3,11 @@ import { Link } from 'react-router-dom'
 import { contentAPI } from '../services/api'
 
 // Minimalist SVGs
-const PlayIcon = ({ className }) => <svg className={className} fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>;
+const PlayIcon = ({ className }) => (
+  <svg className={className} fill="currentColor" viewBox="0 0 24 24">
+    <path d="M6.5 4.5v15c0 1.1.9 1.5 1.5.8l11.5-7.5c.6-.4.6-1.3 0-1.7l-11.5-7.5c-.6-.7-1.5-.3-1.5.8z" />
+  </svg>
+);
 const ArrowRightIcon = ({ className }) => <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>;
 const ClockIcon = ({ className }) => <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>;
 const VideoIcon = ({ className }) => <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="2" y1="7" x2="7" y2="7"/><line x1="2" y1="17" x2="7" y2="17"/><line x1="17" y1="17" x2="22" y2="17"/><line x1="17" y1="7" x2="22" y2="7"/></svg>;
@@ -11,6 +15,12 @@ const ChevronLeftIcon = ({ className }) => <svg className={className} fill="none
 const ChevronRightIcon = ({ className }) => <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>;
 const ImageIcon = ({ className }) => <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>;
 const SearchXIcon = ({ className }) => <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.5"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35M8.5 8.5l5 5M13.5 8.5l-5 5"/></svg>;
+
+const createSecureSlug = (title, type, id) => {
+  const safeTitle = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+  const encodedData = btoa(`${type}:${id}`).replace(/=/g, ''); 
+  return `${safeTitle}-${encodedData}`;
+};
 
 export default function ImpactPulse() {
   const [activeCategory, setActiveCategory] = useState('All');
@@ -22,6 +32,9 @@ export default function ImpactPulse() {
   const scrollContainerRef = useRef(null);
 
   useEffect(() => {
+    // Set the browser tab title
+    document.title = "Impact Pulse | Rafiki Afrik";
+
     const fetchContent = async () => {
       try {
         const [articlesRes, videosRes] = await Promise.all([
@@ -44,9 +57,7 @@ export default function ImpactPulse() {
 
     const formattedArticles = articles
       .filter(a => {
-        // Kick out drafts
         if (!a.is_published) return false;
-        // Kick out future scheduled posts
         const pubDate = new Date(a.published_date || a.created_at || now);
         return pubDate <= now;
       })
@@ -54,7 +65,6 @@ export default function ImpactPulse() {
         const timeStr = a.reading_time || '5 min';
         return {
           id: a.id,
-          slug: a.slug,
           title: a.title,
           cType: 'article',
           displayDate: a.published_date || a.created_at || now.toISOString(),
@@ -67,9 +77,7 @@ export default function ImpactPulse() {
 
     const formattedVideos = videos
       .filter(v => {
-        // Kick out drafts
         if (!v.is_published) return false;
-        // Kick out future scheduled posts
         const pubDate = new Date(v.published_date || v.created_at || now);
         return pubDate <= now;
       })
@@ -117,8 +125,6 @@ export default function ImpactPulse() {
 
   return (
     <div className="min-h-screen bg-[#FDFCFB] relative font-body text-gray-800 pb-24">
-
-      {/* ── Ambient Header ── */}
       <header className="relative pt-32 pb-8 overflow-hidden bg-gradient-to-b from-orange-50/40 to-[#FDFCFB]">
         <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-secondary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none"></div>
         <div className="absolute top-24 left-0 w-[320px] h-[320px] bg-primary/[0.04] rounded-full blur-3xl -translate-x-1/3 pointer-events-none"></div>
@@ -133,10 +139,7 @@ export default function ImpactPulse() {
             </p>
           </div>
 
-          {/* ── Floating Pill Filter Bar ── */}
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 bg-white p-2.5 rounded-[2rem] lg:rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-gray-100 w-full xl:max-w-6xl">
-
-            {/* Scrollable Category Container */}
             <div className="relative flex-1 w-full overflow-hidden flex items-center group pl-2 min-w-0">
               <button
                 type="button"
@@ -159,7 +162,7 @@ export default function ImpactPulse() {
                     aria-pressed={activeCategory === cat}
                     className={`snap-start whitespace-nowrap px-5 py-2.5 sm:px-6 sm:py-3 rounded-full text-[10px] sm:text-xs font-bold uppercase tracking-widest transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 ${
                       activeCategory === cat
-                        ? "bg-primary text-white shadow-md"
+                        ? "bg-secondary text-white shadow-md"
                         : "bg-transparent text-gray-500 hover:bg-gray-50 hover:text-gray-900"
                     }`}
                   >
@@ -178,8 +181,8 @@ export default function ImpactPulse() {
               </button>
             </div>
 
-            {/* Segmented Format Toggle */}
-            <div className="flex bg-gray-50 p-1.5 rounded-full border border-gray-100 shrink-0 w-full lg:w-auto">
+            {/* Container: Solid Orange. Active Selector: Solid Brown */}
+            <div className="flex bg-secondary p-1.5 rounded-full border border-secondary shadow-inner shrink-0 w-full lg:w-auto">
               {[
                 { id: 'all', label: 'All' },
                 { id: 'article', label: 'Articles' },
@@ -190,10 +193,10 @@ export default function ImpactPulse() {
                   type="button"
                   onClick={() => setActiveFormat(format.id)}
                   aria-pressed={activeFormat === format.id}
-                  className={`flex-1 lg:flex-none px-4 sm:px-6 py-2.5 rounded-full text-[10px] sm:text-xs font-bold uppercase tracking-widest transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 ${
+                  className={`flex-1 lg:flex-none px-4 sm:px-6 py-2.5 rounded-full text-[10px] sm:text-xs font-bold uppercase tracking-widest transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40 ${
                     activeFormat === format.id
-                      ? "bg-white text-gray-900 shadow-sm border border-gray-200/50"
-                      : "text-gray-400 hover:text-gray-900"
+                      ? "bg-primary text-white shadow-md"
+                      : "text-white/80 hover:text-white hover:bg-white/20"
                   }`}
                 >
                   {format.label}
@@ -209,35 +212,21 @@ export default function ImpactPulse() {
           <EmptyState />
         ) : (
           <>
-            {/* ── Contained Hero Overlay Feature ── */}
             {heroPost && (
               <section className="mb-12 sm:mb-16">
-                {heroPost.cType === 'video' ? (
-                  <a href={heroPost.url} target="_blank" rel="noopener noreferrer" className="block group rounded-[2rem] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-4">
-                    <HeroCard post={heroPost} />
-                  </a>
-                ) : (
-                  <Link to={`/impact-pulse/${heroPost.slug || heroPost.id}`} className="block group rounded-[2rem] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-4">
-                    <HeroCard post={heroPost} />
-                  </Link>
-                )}
+                <Link to={`/impact-pulse/${createSecureSlug(heroPost.title, heroPost.cType, heroPost.id)}`} className="block group rounded-[2rem] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-4">
+                  <HeroCard post={heroPost} />
+                </Link>
               </section>
             )}
 
-            {/* ── Clean Editorial Grid ── */}
             {gridPosts.length > 0 && (
               <section className="grid md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-12 sm:gap-y-16">
                 {gridPosts.map((post) => (
-                  <div key={post.id}>
-                    {post.cType === 'video' ? (
-                      <a href={post.url} target="_blank" rel="noopener noreferrer" className="block group h-full rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2">
-                        <GridCard post={post} />
-                      </a>
-                    ) : (
-                      <Link to={`/impact-pulse/${post.slug || post.id}`} className="block group h-full rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2">
-                        <GridCard post={post} />
-                      </Link>
-                    )}
+                  <div key={`${post.cType}-${post.id}`}>
+                    <Link to={`/impact-pulse/${createSecureSlug(post.title, post.cType, post.id)}`} className="block group h-full rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2">
+                      <GridCard post={post} />
+                    </Link>
                   </div>
                 ))}
               </section>
@@ -249,10 +238,8 @@ export default function ImpactPulse() {
   )
 }
 
-// Sub-component: Contained Hero Layout with Text Overlay
 const HeroCard = ({ post }) => (
   <div className="relative w-full aspect-square sm:aspect-[4/3] md:aspect-[21/9] lg:aspect-[2.5/1] rounded-[2rem] overflow-hidden group shadow-[0_8px_30px_rgb(0,0,0,0.08)] bg-gray-900">
-    {/* Background Image or fallback */}
     {post.img ? (
       <img
         src={post.img}
@@ -265,10 +252,8 @@ const HeroCard = ({ post }) => (
       </div>
     )}
 
-    {/* Dark Gradient Overlay for perfect text readability */}
     <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/50 sm:via-gray-900/40 to-transparent" />
 
-    {/* Text Content Anchored to Bottom Left */}
     <div className="absolute bottom-0 left-0 p-5 sm:p-8 md:p-12 w-full z-20">
       <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-white/90 mb-3 sm:mb-5">
         <span className="bg-secondary text-white px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full">{post.category}</span>
@@ -290,7 +275,7 @@ const HeroCard = ({ post }) => (
           {new Date(post.displayDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
         </div>
 
-        <div className="inline-flex items-center gap-2 text-white font-bold text-xs sm:text-sm bg-white/10 group-hover:bg-white/20 backdrop-blur-md px-4 sm:px-5 py-2.5 rounded-full transition-colors border border-white/10 w-fit">
+        <div className="inline-flex items-center gap-2 text-white font-bold text-xs sm:text-sm bg-white/10 group-hover:bg-secondary backdrop-blur-md px-4 sm:px-5 py-2.5 rounded-full transition-colors border border-white/10 w-fit">
           {post.cType === 'video' ? (
             <>Watch Now <PlayIcon className="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" /></>
           ) : (
@@ -302,7 +287,6 @@ const HeroCard = ({ post }) => (
   </div>
 );
 
-// Sub-component: Editorial Grid Layout
 const GridCard = ({ post }) => (
   <div className="flex flex-col h-full">
     <div className="relative w-full aspect-[4/3] overflow-hidden bg-gray-100 rounded-2xl mb-4 sm:mb-6 shadow-sm group-hover:shadow-md transition-shadow">
@@ -317,10 +301,11 @@ const GridCard = ({ post }) => (
           <ImageIcon className="w-10 h-10 text-gray-300" />
         </div>
       )}
+      
       {post.cType === 'video' && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/10 group-hover:bg-black/20 transition-colors">
-          <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-white/90 backdrop-blur-sm shadow-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-            <PlayIcon className="h-6 w-6 sm:h-7 sm:w-7 text-primary ml-1 sm:ml-1.5" />
+        <div className="absolute inset-0 flex items-center justify-center bg-black/10 group-hover:bg-black/30 transition-colors duration-500">
+          <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-white/90 backdrop-blur-md shadow-lg flex items-center justify-center group-hover:scale-110 group-hover:bg-secondary transition-all duration-300">
+            <PlayIcon className="h-6 w-6 sm:h-7 sm:w-7 text-primary ml-1 group-hover:text-white transition-colors duration-300" />
           </div>
         </div>
       )}
@@ -353,7 +338,6 @@ const GridCard = ({ post }) => (
   </div>
 );
 
-// Sub-component: Editorial-shaped loading skeleton (mirrors real layout instead of a blank spinner)
 const ImpactPulseSkeleton = () => (
   <div className="min-h-screen bg-[#FDFCFB] pb-24 animate-pulse">
     <header className="pt-32 pb-8">
@@ -378,7 +362,6 @@ const ImpactPulseSkeleton = () => (
   </div>
 );
 
-// Sub-component: Empty state
 const EmptyState = () => (
   <div className="py-24 flex flex-col items-center text-center px-4">
     <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gray-50 flex items-center justify-center mb-4 sm:mb-5">

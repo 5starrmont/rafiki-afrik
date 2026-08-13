@@ -10,19 +10,17 @@ export default function Home() {
   return (
     <div>
       {/* Hero Section */}
-      <section className="relative w-full min-h-[105vh] flex items-center justify-center">
-        {/* Background Image */}
+      <section className="relative w-full min-h-[95vh] flex items-center justify-center overflow-hidden">
+        {/* Background Image - Anchored lower to push the image up and hide faces */}
         <div 
-          className="absolute inset-0 bg-cover bg-[center_top_20%]"
+          className="absolute inset-0 bg-cover bg-[center_80%]"
           style={{ backgroundImage: `url('/dancing.jpeg')` }}
         >
-          <div className="absolute inset-0 bg-black/60"></div>
+          {/* Brown Overlay matching the legacy site */}
+          <div className="absolute inset-0 bg-[#9A4C1C]/80"></div>
         </div>
 
         <div className="relative z-10 text-center px-6 max-w-5xl mx-auto flex flex-col items-center mt-16">
-          {/* Logo */}
-          <img src="/logo.png" alt="Rafiki Afrik Logo" className="w-32 h-32 md:w-40 md:h-40 mb-6 object-contain drop-shadow-2xl" />
-          
           <h1 className="text-4xl md:text-6xl lg:text-7xl font-heading font-bold text-white mb-6 drop-shadow-md leading-tight">
             Amplifying African Voices Through Media
           </h1>
@@ -33,7 +31,7 @@ export default function Home() {
             to="/friends" 
             className="bg-secondary hover:bg-[#e07d3b] text-white font-body font-medium px-8 py-4 rounded-full transition-all shadow-lg"
           >
-            Join Friends from Afrika
+            Join Friends from Afrika for Afrika
           </Link>
         </div>
       </section>
