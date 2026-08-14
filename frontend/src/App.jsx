@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-route
 
 // Public Components
 import Navbar from './components/Navbar'
+import Footer from './components/Footer'
 
 // Public Pages
 import Home from './pages/Home'
@@ -28,29 +29,33 @@ function AppLayout() {
   const isAdminRoute = location.pathname.startsWith('/admin')
 
   return (
-    <>
+    <div className={!isAdminRoute ? "flex flex-col min-h-screen" : ""}>
       {!isAdminRoute && <Navbar />}
 
-      <Routes>
-        {/* Public Routes */}
-        <Route path="/" element={<Home />} />
-        <Route path="/about" element={<About />} />
-        <Route path="/impact-pulse" element={<ImpactPulse />} />
-        <Route path="/impact-pulse/:id" element={<ImpactPulseReader />} />
-        <Route path="/hadithi-afrika" element={<HadithiAfrika />} />
-        <Route path="/services" element={<Services />} />
-        <Route path="/friends" element={<Friends />} />
+      <main className={!isAdminRoute ? "flex-grow" : ""}>
+        <Routes>
+          {/* Public Routes */}
+          <Route path="/" element={<Home />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/impact-pulse" element={<ImpactPulse />} />
+          <Route path="/impact-pulse/:id" element={<ImpactPulseReader />} />
+          <Route path="/hadithi-afrika" element={<HadithiAfrika />} />
+          <Route path="/services" element={<Services />} />
+          <Route path="/friends" element={<Friends />} />
 
-        {/* Admin Routes wrapped inside the shared AdminLayout */}
-        <Route path="/admin" element={<AdminLayout />}>
-          <Route index element={<AdminDashboard />} /> 
-          <Route path="impact-pulse" element={<ImpactPulseHub />} />
-          <Route path="impact-pulse/new/:type" element={<ImpactPulseComposer />} />
-          <Route path="impact-pulse/edit/:type/:id" element={<ImpactPulseEditor />} /> 
-          <Route path="hadithi-afrika" element={<AdminHadithi />} />
-        </Route>
-      </Routes>
-    </>
+          {/* Admin Routes wrapped inside the shared AdminLayout */}
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route index element={<AdminDashboard />} /> 
+            <Route path="impact-pulse" element={<ImpactPulseHub />} />
+            <Route path="impact-pulse/new/:type" element={<ImpactPulseComposer />} />
+            <Route path="impact-pulse/edit/:type/:id" element={<ImpactPulseEditor />} /> 
+            <Route path="hadithi-afrika" element={<AdminHadithi />} />
+          </Route>
+        </Routes>
+      </main>
+
+      {!isAdminRoute && <Footer />}
+    </div>
   )
 }
 
