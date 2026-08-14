@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom'
-import FloatingLines from './FloatingLines'
 
 export default function AdvocacyChannel() {
   const channels = [
@@ -27,29 +26,8 @@ export default function AdvocacyChannel() {
   ]
 
   return (
-    // Explicitly forced pure bg-white here
-    <section className="relative py-24 px-6 bg-white overflow-hidden">
-      
-      {/* Floating Lines 3D Background */}
-      <div className="absolute inset-0 z-0">
-        <FloatingLines
-          linesGradient={['#e07d3b', '#fcd3b6', '#e07d3b']} 
-          enabledWaves={['top', 'middle', 'bottom']}
-          lineCount={[6, 8, 10]} 
-          lineDistance={[8, 6, 4]}
-          
-          // Interaction Tweaks for Smoothness
-          bendRadius={6.0}         // Widened the area of influence
-          bendStrength={-1.8}      // Smooth, sweeping bends
-          mouseDamping={0.04}      // Lowered damping makes the lines glide and trail like silk
-          interactive={true}
-          parallax={true}
-          parallaxStrength={0.3}   // Added a bit more 3D depth
-          animationSpeed={0.8}
-        />
-      </div>
-
-      <div className="max-w-6xl mx-auto relative z-10 pointer-events-none">
+    <section className="py-24 px-6 bg-white">
+      <div className="max-w-6xl mx-auto">
         
         {/* Section Header */}
         <div className="text-center mb-16">
@@ -64,7 +42,7 @@ export default function AdvocacyChannel() {
           {channels.map((channel) => (
             <div 
               key={channel.id} 
-              className="pointer-events-auto flex flex-col bg-white rounded-xl overflow-hidden border border-gray-200 shadow-xl hover:shadow-2xl transition-all duration-300 group hover:-translate-y-1"
+              className="flex flex-col bg-white rounded-xl overflow-hidden border border-gray-200 shadow-xl hover:shadow-2xl transition-all duration-300 group hover:-translate-y-1"
             >
               <div className="h-56 bg-gray-100 relative overflow-hidden border-b border-gray-200">
                 <img 
