@@ -9,15 +9,13 @@ export default function ImpactCounters() {
   ]
 
   return (
-    <section className="py-20 px-6 bg-primary text-white">
+    <section className="py-20 px-6 bg-white text-primary">
       <div className="max-w-6xl mx-auto text-center">
         
-        <h2 className="text-3xl md:text-4xl font-heading font-semibold mb-4">
+        <h2 className="text-3xl md:text-4xl font-heading font-semibold mb-4 text-primary">
           Our Impact in Numbers
         </h2>
-        <p className="text-gray-300 font-body text-lg mb-12 max-w-2xl mx-auto">
-          Driving measurable change and amplifying narratives across the continent.
-        </p>
+        <div className="w-16 h-1 bg-secondary mx-auto mb-16"></div>
 
         <div className="grid grid-cols-2 md:grid-cols-3 gap-8 md:gap-12">
           {stats.map((stat) => (
@@ -25,7 +23,7 @@ export default function ImpactCounters() {
               <span className="text-5xl md:text-6xl font-heading font-bold text-secondary mb-2">
                 {stat.value}
               </span>
-              <span className="font-body text-sm md:text-base text-gray-200 uppercase tracking-wider">
+              <span className="font-body text-sm md:text-base text-gray-600 uppercase tracking-wider">
                 {stat.label}
               </span>
             </div>

@@ -42,11 +42,11 @@ export default function Home() {
       {/* Legacy Advocacy Channel */}
       <AdvocacyChannel />
 
-      {/* Latest Podcast Feed */}
-      <PodcastFeed />
-
       {/* Latest Impact Pulse Feed */}
       <ImpactPulseFeed />
+
+      {/* Latest Podcast Feed */}
+      <PodcastFeed />
       
       {/* Impact Statistics */}
       <ImpactCounters />
