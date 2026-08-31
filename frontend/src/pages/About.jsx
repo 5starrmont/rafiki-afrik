@@ -146,7 +146,7 @@ export default function About() {
                 Our approach is fearless, creative, and intentional. By weaving together evidence-based content with captivating films, digital campaigns, and advocacy strategies, we spark conversations that challenge the status quo, influence public discourse, and inspire collective action across Africa.
               </p>
               <p className="font-bold text-primary text-xl mt-8 font-heading">
-                Rafiki Afrik is more than a media advocacy company — it's a movement.
+                Rafiki Afrik is more than a media advocacy platform,  it's a movement.
               </p>
             </div>
           </div>

@@ -38,8 +38,9 @@ class FilmSerializer(serializers.ModelSerializer):
     class Meta:
         model = Film
         fields = [
-            'id', 'title', 'slug', 'director', 'release_year', 
-            'poster_image', 'description', 'video_url', 'is_featured', 'published_date'
+            'id', 'title', 'slug', 'release_year', 
+            'poster_image', 'description', 'video_url', 
+            'is_featured', 'is_published', 'published_date'
         ]
 
 class NewsletterSubscriberSerializer(serializers.ModelSerializer):

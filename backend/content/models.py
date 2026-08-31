@@ -59,13 +59,14 @@ class VideoStory(models.Model):
 class Film(models.Model):
     title = models.CharField(max_length=255)
     slug = models.SlugField(unique=True, blank=True)
-    director = models.CharField(max_length=255)
+    director = models.CharField(max_length=255, blank=True, null=True)
     release_year = models.CharField(max_length=4)
     poster_image = models.ImageField(upload_to='films/posters/')
     description = models.TextField(help_text="Synopsis of the film.")
     video_url = models.URLField(blank=True, null=True, help_text="Link to the full film or trailer.")
     is_featured = models.BooleanField(default=False)
-    published_date = models.DateTimeField(auto_now_add=True)
+    is_published = models.BooleanField(default=True, help_text="Toggle to publish or save as draft.")
+    published_date = models.DateTimeField(default=timezone.now)
 
     def save(self, *args, **kwargs):
         if not self.slug:

@@ -1,6 +1,42 @@
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
+import { contentAPI } from '../../services/api'
 
 export default function AdminDashboard() {
+  const [stats, setStats] = useState({
+    publications: 0,
+    documentaries: 0,
+    views: 0 // Placeholder until analytics are integrated
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        // Fetch all content counts simultaneously
+        const [articlesRes, videosRes, filmsRes] = await Promise.all([
+          contentAPI.getArticles(),
+          contentAPI.getVideos(),
+          contentAPI.getFilms()
+        ]);
+        
+        setStats({
+          // Combine articles and short-form videos for total publications
+          publications: articlesRes.data.length + videosRes.data.length,
+          // Total Hadithi Afrika films
+          documentaries: filmsRes.data.length,
+          views: 0 
+        });
+      } catch (error) {
+        console.error("Error fetching dashboard statistics:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStats();
+  }, []);
+
   return (
     <div>
       {/* Header */}
@@ -13,15 +49,21 @@ export default function AdminDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
         <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
           <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-2">Total Publications</h3>
-          <p className="text-4xl font-black text-primary">0</p>
+          <p className="text-4xl font-black text-primary">
+            {loading ? <span className="animate-pulse">...</span> : stats.publications}
+          </p>
         </div>
         <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
           <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-2">Active Documentaries</h3>
-          <p className="text-4xl font-black text-secondary">0</p>
+          <p className="text-4xl font-black text-secondary">
+            {loading ? <span className="animate-pulse">...</span> : stats.documentaries}
+          </p>
         </div>
         <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
           <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-2">Platform Views</h3>
-          <p className="text-4xl font-black text-gray-900">0</p>
+          <p className="text-4xl font-black text-gray-900">
+            {stats.views}
+          </p>
         </div>
       </div>
 

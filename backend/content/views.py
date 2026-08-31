@@ -21,7 +21,8 @@ class VideoStoryViewSet(viewsets.ModelViewSet):
     queryset = VideoStory.objects.all().order_by('-published_date')
     serializer_class = VideoStorySerializer
 
-class FilmViewSet(viewsets.ReadOnlyModelViewSet):
+# CHANGED HERE: Replaced ReadOnlyModelViewSet with ModelViewSet
+class FilmViewSet(viewsets.ModelViewSet):
     queryset = Film.objects.all().order_by('-published_date')
     serializer_class = FilmSerializer
 

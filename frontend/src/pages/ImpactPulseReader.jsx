@@ -50,7 +50,7 @@ export default function ImpactPulseReader() {
   const [readProgress, setReadProgress] = useState(0);
   const [showFloatingBar, setShowFloatingBar] = useState(false);
   
-  // Animation state for smooth entering and exiting
+  // Animation state for smooth entering
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
@@ -60,12 +60,10 @@ export default function ImpactPulseReader() {
   }, []);
 
   const handleBackNavigation = () => {
-    // Trigger smooth fade-out and slide-down
-    setIsVisible(false);
-    // Wait for the CSS transition to finish before actually routing
-    setTimeout(() => {
-      navigate(-1);
-    }, 300);
+    // Navigating instantly without a timeout ensures React Router and the 
+    // browser's native scroll restoration trigger in the exact same frame, 
+    // entirely preventing the "jump to top" glitch.
+    navigate(-1);
   };
 
   useEffect(() => {
@@ -75,19 +73,6 @@ export default function ImpactPulseReader() {
       document.title = "Impact Pulse | Rafiki Afrik";
     }
   }, [post]);
-
-  useEffect(() => {
-    const updateProgress = () => {
-      const scrollTop = window.scrollY;
-      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-      const progress = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
-      setReadProgress(Math.min(progress, 100));
-      setShowFloatingBar(scrollTop > 400);
-    };
-
-    window.addEventListener("scroll", updateProgress);
-    return () => window.removeEventListener("scroll", updateProgress);
-  }, []);
 
   useEffect(() => {
     window.scrollTo(0, 0);

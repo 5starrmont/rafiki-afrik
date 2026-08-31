@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom'
 
 // Public Components
@@ -10,6 +11,7 @@ import About from './pages/About'
 import ImpactPulse from './pages/ImpactPulse'
 import ImpactPulseReader from './pages/ImpactPulseReader'
 import HadithiAfrika from './pages/HadithiAfrika'
+import HadithiAfrikaWatch from './pages/HadithiAfrikaWatch'
 import Services from './pages/Services'
 import Friends from './pages/Friends'
 
@@ -19,12 +21,17 @@ import AdminDashboard from './pages/admin/AdminDashboard'
 import ImpactPulseHub from './pages/admin/ImpactPulseHub'
 import ImpactPulseComposer from './pages/admin/ImpactPulseComposer'
 import ImpactPulseEditor from './pages/admin/ImpactPulseEditor'
-
-// Temporary Placeholders
-const AdminHadithi = () => <div className="font-heading text-2xl font-bold text-primary mb-2">Hadithi Afrika Management (Coming Soon)</div>
+import HadithiAfrikaHub from './pages/admin/HadithiAfrikaHub'
+import HadithiAfrikaComposer from './pages/admin/HadithiAfrikaComposer'
+import HadithiAfrikaEditor from './pages/admin/HadithiAfrikaEditor'
 
 function AppLayout() {
   const location = useLocation()
+  
+  // Instantly scroll to the top left corner whenever the URL path changes
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [location.pathname])
   
   const isAdminRoute = location.pathname.startsWith('/admin')
 
@@ -40,16 +47,23 @@ function AppLayout() {
           <Route path="/impact-pulse" element={<ImpactPulse />} />
           <Route path="/impact-pulse/:id" element={<ImpactPulseReader />} />
           <Route path="/hadithi-afrika" element={<HadithiAfrika />} />
+          <Route path="/hadithi-afrika/watch" element={<HadithiAfrikaWatch />} />
           <Route path="/services" element={<Services />} />
           <Route path="/friends" element={<Friends />} />
 
           {/* Admin Routes wrapped inside the shared AdminLayout */}
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<AdminDashboard />} /> 
+            
+            {/* Impact Pulse Routes */}
             <Route path="impact-pulse" element={<ImpactPulseHub />} />
             <Route path="impact-pulse/new/:type" element={<ImpactPulseComposer />} />
             <Route path="impact-pulse/edit/:type/:id" element={<ImpactPulseEditor />} /> 
-            <Route path="hadithi-afrika" element={<AdminHadithi />} />
+            
+            {/* Hadithi Afrika Routes */}
+            <Route path="hadithi-afrika" element={<HadithiAfrikaHub />} />
+            <Route path="hadithi-afrika/new" element={<HadithiAfrikaComposer />} />
+            <Route path="hadithi-afrika/edit/:id" element={<HadithiAfrikaEditor />} />
           </Route>
         </Routes>
       </main>
