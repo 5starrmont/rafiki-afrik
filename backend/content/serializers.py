@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Category, Article, VideoStory, Film, NewsletterSubscriber
+from .models import Category, Article, VideoStory, Film, NewsletterSubscriber, PodcastEpisode
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
@@ -47,3 +47,12 @@ class NewsletterSubscriberSerializer(serializers.ModelSerializer):
     class Meta:
         model = NewsletterSubscriber
         fields = ['id', 'email', 'subscribed_at', 'is_active']
+
+class PodcastEpisodeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PodcastEpisode
+        fields = [
+            'id', 'title', 'slug', 'host', 'embed_url', 'spotify_url',
+            'description', 'duration', 
+            'is_featured', 'is_published', 'published_date'
+        ]

@@ -84,3 +84,27 @@ class NewsletterSubscriber(models.Model):
 
     def __str__(self):
         return self.email
+
+
+class PodcastEpisode(models.Model):
+    title = models.CharField(max_length=255)
+    slug = models.SlugField(unique=True, blank=True)
+    host = models.CharField(max_length=255, default="Rafiki Afrik")
+    embed_url = models.URLField(help_text="URL for Spotify, Apple Podcasts, or YouTube embed.")
+    spotify_url = models.URLField(max_length=500, blank=True, null=True, help_text="Optional link to the Spotify episode")
+    description = models.TextField(help_text="Show notes and episode description.")
+    duration = models.CharField(max_length=50, help_text="e.g., '45 mins'", blank=True, null=True)
+    is_featured = models.BooleanField(default=False)
+    is_published = models.BooleanField(default=True)
+    published_date = models.DateTimeField(default=timezone.now)
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.title)
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.title
+        
+    class Meta:
+        verbose_name_plural = "Podcast Episodes"

@@ -3,7 +3,7 @@ from rest_framework.routers import DefaultRouter
 from .views import (
     CategoryViewSet, ArticleViewSet, 
     VideoStoryViewSet, FilmViewSet,
-    NewsletterSubscriberViewSet
+    NewsletterSubscriberViewSet, PodcastEpisodeViewSet
 )
 
 router = DefaultRouter()
@@ -12,6 +12,7 @@ router.register(r'articles', ArticleViewSet)
 router.register(r'videos', VideoStoryViewSet)
 router.register(r'films', FilmViewSet)
 router.register(r'newsletter', NewsletterSubscriberViewSet)
+router.register(r'podcasts', PodcastEpisodeViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),
