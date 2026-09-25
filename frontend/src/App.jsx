@@ -12,6 +12,8 @@ import ImpactPulse from './pages/ImpactPulse'
 import ImpactPulseReader from './pages/ImpactPulseReader'
 import HadithiAfrika from './pages/HadithiAfrika'
 import HadithiAfrikaWatch from './pages/HadithiAfrikaWatch'
+import Podcasts from './pages/Podcasts'
+import PodcastReader from './pages/PodcastReader'
 import Services from './pages/Services'
 import Friends from './pages/Friends'
 
@@ -24,6 +26,9 @@ import ImpactPulseEditor from './pages/admin/ImpactPulseEditor'
 import HadithiAfrikaHub from './pages/admin/HadithiAfrikaHub'
 import HadithiAfrikaComposer from './pages/admin/HadithiAfrikaComposer'
 import HadithiAfrikaEditor from './pages/admin/HadithiAfrikaEditor'
+import PodcastsHub from './pages/admin/PodcastsHub'
+import PodcastComposer from './pages/admin/PodcastComposer'
+import PodcastEditor from './pages/admin/PodcastEditor'
 
 function AppLayout() {
   const location = useLocation()
@@ -48,6 +53,8 @@ function AppLayout() {
           <Route path="/impact-pulse/:id" element={<ImpactPulseReader />} />
           <Route path="/hadithi-afrika" element={<HadithiAfrika />} />
           <Route path="/hadithi-afrika/watch" element={<HadithiAfrikaWatch />} />
+          <Route path="/podcasts" element={<Podcasts />} />
+          <Route path="/podcasts/:id" element={<PodcastReader />} />
           <Route path="/services" element={<Services />} />
           <Route path="/friends" element={<Friends />} />
 
@@ -64,6 +71,11 @@ function AppLayout() {
             <Route path="hadithi-afrika" element={<HadithiAfrikaHub />} />
             <Route path="hadithi-afrika/new" element={<HadithiAfrikaComposer />} />
             <Route path="hadithi-afrika/edit/:id" element={<HadithiAfrikaEditor />} />
+
+            {/* Podcasts Routes */}
+            <Route path="podcasts" element={<PodcastsHub />} />
+            <Route path="podcasts/new" element={<PodcastComposer />} />
+            <Route path="podcasts/edit/:id" element={<PodcastEditor />} />
           </Route>
         </Routes>
       </main>

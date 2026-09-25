@@ -36,23 +36,34 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Dynamic Spotlight Section */}
-      <Spotlight />
-
-      {/* Legacy Advocacy Channel */}
-      <AdvocacyChannel />
-
-      {/* Latest Impact Pulse Feed */}
-      <ImpactPulseFeed />
-
-      {/* Latest Podcast Feed */}
-      <PodcastFeed />
+      {/* 
+        Dynamic Sections Wrapped with Min-Heights 
+        This reserves space on the screen while data fetches to prevent Cumulative Layout Shift (CLS) 
+        and ensures the Back button scroll restoration lands exactly where you left off.
+      */}
       
-      {/* Impact Statistics */}
-      <ImpactCounters />
+      <div className="min-h-[500px] w-full">
+        <Spotlight />
+      </div>
+
+      <div className="min-h-[400px] w-full">
+        <AdvocacyChannel />
+      </div>
+
+      <div className="min-h-[600px] w-full">
+        <ImpactPulseFeed />
+      </div>
+
+      <div className="min-h-[600px] w-full">
+        <PodcastFeed />
+      </div>
+      
+      <div className="min-h-[300px] w-full">
+        <ImpactCounters />
+      </div>
 
       {/* Newsletter Subscription */}
-      <div className="px-6 mb-16">
+      <div className="px-6 mb-16 min-h-[300px]">
         <Newsletter />
       </div>
 

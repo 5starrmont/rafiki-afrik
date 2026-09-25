@@ -28,7 +28,7 @@ const ArrowLeftIcon = ({ className }) => (
 );
 
 const ChevronDownIcon = ({ className }) => (
-  <svg className={className} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
   </svg>
 );
@@ -45,7 +45,13 @@ export default function Navbar() {
   // Determine Layout Modes
   const isImpactPulse = location.pathname.includes('/impact-pulse')
   const isWatchPage = location.pathname.includes('/hadithi-afrika/watch')
-  const isCollapsedMode = isImpactPulse || isWatchPage
+  const isPodcasts = location.pathname.includes('/podcasts')
+  
+  // Specific checks for podcast views
+  const isPodcastReader = location.pathname.startsWith('/podcasts/') && location.pathname !== '/podcasts' && location.pathname !== '/podcasts/';
+  const isPodcastsLibrary = location.pathname === '/podcasts' || location.pathname === '/podcasts/';
+  
+  const isCollapsedMode = isImpactPulse || isWatchPage || isPodcasts
 
   // Generate an array of recent years for the dropdown
   const currentYear = new Date().getFullYear();
@@ -100,47 +106,59 @@ export default function Navbar() {
 
   return (
     <>
-      {/* 
-        The outer wrapper is permanently white (except on Watch page where it's transparent). 
-        Added ease-in-out for a buttery smooth padding transition.
-      */}
       <div className={`fixed top-0 left-0 right-0 z-50 flex justify-center transition-all duration-500 ease-in-out ${
         isWatchPage 
           ? 'bg-transparent py-0 shadow-none' 
-          : `bg-white ${isScrolled ? 'py-4 shadow-sm' : 'py-0 shadow-none'}`
+          : (isPodcastReader || isPodcastsLibrary)
+            ? 'py-0 shadow-sm backdrop-blur-md transition-colors duration-500 bg-white/95' 
+            : `bg-white ${isScrolled ? 'py-4 shadow-sm' : 'py-0 shadow-none'}`
       }`}>
         
         <nav 
           className={`flex justify-between items-center transition-all duration-500 ease-in-out
             ${isWatchPage
               ? 'w-full max-w-full px-6 md:px-10 py-4 text-white rounded-none bg-transparent'
-              : (isScrolled 
-                  ? 'w-[90%] max-w-5xl px-6 py-2.5 rounded-full shadow-lg bg-primary text-white' 
-                  : `w-full max-w-full px-6 md:px-10 py-4 rounded-none ${
-                      isImpactPulse ? 'bg-primary text-white' : 'bg-white text-primary'
-                    }`
-                )
+              : (isPodcastReader || isPodcastsLibrary)
+                ? 'w-full max-w-full px-6 md:px-10 py-4 rounded-none transition-colors duration-500 text-primary'
+                : (isScrolled 
+                    ? 'w-[90%] max-w-5xl px-6 py-2.5 rounded-full shadow-lg bg-primary text-white' 
+                    : `w-full max-w-full px-6 md:px-10 py-4 rounded-none ${
+                        isImpactPulse ? 'bg-primary text-white' : 'bg-white text-primary'
+                      }`
+                  )
             } 
           `}
         >
-          {/* Brand Logo & Name Area with Back Button */}
+          {/* Brand Logo & Name Area with Dynamic Back Button */}
           <div className="flex items-center z-50">
-            {isWatchPage && (
+            {(isWatchPage || isPodcastReader || isPodcastsLibrary) && (
               <button 
-                onClick={() => navigate('/hadithi-afrika')}
-                className="p-1 md:p-2 text-white/70 hover:text-white transition-colors -ml-4 md:-ml-8 mr-2 md:mr-4"
-                title="Back to Hadithi Afrika"
+                onClick={() => {
+                  // If there is browser history within the app, pop it to restore scroll position naturally.
+                  // If they opened the link directly in a new tab (no history), fall back to exact routes.
+                  if (window.history.length > 2) {
+                    navigate(-1);
+                  } else {
+                    if (isPodcastsLibrary) navigate('/');
+                    else if (isPodcastReader) navigate('/podcasts');
+                    else navigate('/hadithi-afrika');
+                  }
+                }}
+                className={`p-1 md:p-2 transition-colors -ml-4 md:-ml-8 mr-2 md:mr-4 ${
+                  isWatchPage ? 'text-white/70 hover:text-white' : 'opacity-70 hover:opacity-100'
+                }`}
+                title="Go Back"
               >
                 <ArrowLeftIcon className="w-5 h-5 md:w-6 md:h-6" />
               </button>
             )}
             
-            <Link to={isWatchPage ? "/hadithi-afrika" : "/"} className="flex items-center gap-3 drop-shadow-md hover:opacity-80 transition-opacity duration-300">
+            <Link to={isPodcastReader ? "/podcasts" : (isWatchPage ? "/hadithi-afrika" : "/")} className="flex items-center gap-3 drop-shadow-md hover:opacity-80 transition-opacity duration-300">
               <img src="/logo.png" alt="Rafiki Afrik Logo" className="w-7 h-7 md:w-9 md:h-9 object-contain" />
               
               <div 
                 className={`transition-all duration-500 ease-in-out overflow-hidden flex items-center ${
-                  isWatchPage && isScrolled ? 'max-w-0 opacity-0' : 'max-w-[200px] opacity-100'
+                  (isWatchPage || isPodcastReader || isPodcastsLibrary) && isScrolled ? 'max-w-0 opacity-0' : 'max-w-[200px] opacity-100'
                 }`}
               >
                 <span className="font-heading font-bold text-lg md:text-xl tracking-wide whitespace-nowrap">
@@ -156,9 +174,9 @@ export default function Navbar() {
               
               // COLLAPSED MODE: Show Hamburger (and Search/Filters if Watch page)
               <div className="flex items-center gap-2 md:gap-4">
+                
                 {isWatchPage && (
                   <div className="flex items-center gap-2">
-                    
                     {/* Year Filter Dropdown */}
                     <div className="relative hidden sm:block">
                       <select 
@@ -192,7 +210,7 @@ export default function Navbar() {
                   onClick={() => setIsMenuOpen(!isMenuOpen)}
                   className="p-2 transition-colors duration-300 hover:text-secondary"
                 >
-                  {isMenuOpen ? <CloseIcon className="w-6 h-6" /> : <MenuIcon className="w-6 h-6" />}
+                  {isMenuOpen ? <CloseIcon className="w-6 h-6 md:w-7 md:h-7" /> : <MenuIcon className="w-6 h-6 md:w-7 md:h-7" />}
                 </button>
               </div>
 
@@ -225,7 +243,7 @@ export default function Navbar() {
         </nav>
       </div>
 
-      {/* Premium Full-Screen Menu Overlay (Fade & Gentle Slide) */}
+      {/* Premium Full-Screen Menu Overlay */}
       <div 
         className={`fixed inset-0 bg-primary/95 backdrop-blur-md z-40 transition-all duration-500 ease-in-out flex flex-col items-center justify-center ${
           isMenuOpen ? 'opacity-100 visible translate-y-0' : 'opacity-0 invisible -translate-y-8'

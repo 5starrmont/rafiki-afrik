@@ -85,15 +85,20 @@ export default function ImpactPulseReader() {
         
         if (slugParam) {
           try {
-            const parts = slugParam.split('-');
-            const hash = parts.pop();
-            const padding = hash.length % 4 === 0 ? '' : '='.repeat(4 - (hash.length % 4));
-            const decodedString = atob(hash + padding);
+            // FIX: Reliably extract the base64 string from the end of the URL
+            const lastDashIndex = slugParam.lastIndexOf('-');
+            const hash = slugParam.substring(lastDashIndex + 1);
             
-            const [type, parsedId] = decodedString.split(':');
-            if (type && parsedId) {
-              decodedType = type;
-              decodedId = parsedId;
+            if (hash) {
+                const padding = hash.length % 4 === 0 ? '' : '='.repeat(4 - (hash.length % 4));
+                const decodedString = atob(hash + padding);
+                
+                // Decode assuming format "type:id" OR "type:slug"
+                const splitIndex = decodedString.indexOf(':');
+                if (splitIndex !== -1) {
+                  decodedType = decodedString.substring(0, splitIndex);
+                  decodedId = decodedString.substring(splitIndex + 1);
+                }
             }
           } catch (e) {
             console.error("Failed to decode URL hash");
@@ -103,10 +108,10 @@ export default function ImpactPulseReader() {
         let currentPost = null;
         let isArt = true;
 
-        if (decodedType === 'video') {
+        if (decodedType === 'video' && decodedId) {
           const res = await fetch(`http://127.0.0.1:8000/api/content/videos/${decodedId}/`);
           if (res.ok) { currentPost = await res.json(); isArt = false; }
-        } else if (decodedType === 'article') {
+        } else if (decodedType === 'article' && decodedId) {
           const res = await fetch(`http://127.0.0.1:8000/api/content/articles/${decodedId}/`);
           if (res.ok) { currentPost = await res.json(); isArt = true; }
         }
@@ -145,15 +150,15 @@ export default function ImpactPulseReader() {
             const sortFn = (a, b) => new Date(b.published_date || b.created_at) - new Date(a.published_date || a.created_at);
             
             if (isArt) {
-              setSameTypeContent(formattedArticles.filter(a => String(a.id) !== String(decodedId)).sort(sortFn));
+              setSameTypeContent(formattedArticles.filter(a => String(a.id) !== String(decodedId) && String(a.slug) !== String(decodedId)).sort(sortFn));
               setOppositeTypeContent(formattedVideos.sort(sortFn).slice(0, 3));
             } else {
-              setSameTypeContent(formattedVideos.filter(v => String(v.id) !== String(decodedId)).sort(sortFn));
+              setSameTypeContent(formattedVideos.filter(v => String(v.id) !== String(decodedId) && String(v.slug) !== String(decodedId)).sort(sortFn));
               setOppositeTypeContent(formattedArticles.sort(sortFn).slice(0, 3));
             }
 
             const filteredUnified = allFormatted
-              .filter(item => !(String(item.id) === String(decodedId) && item.type === (isArt ? 'article' : 'video')))
+              .filter(item => !( (String(item.id) === String(decodedId) || String(item.slug) === String(decodedId)) && item.type === (isArt ? 'article' : 'video') ))
               .sort(sortFn)
               .slice(0, 4);
             setUnifiedContent(filteredUnified);
@@ -385,7 +390,7 @@ export default function ImpactPulseReader() {
                 </h3>
                 <div className="flex flex-col gap-6 max-h-[500px] overflow-y-auto pr-2 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-gray-50 [&::-webkit-scrollbar-thumb]:bg-gray-200 [&::-webkit-scrollbar-thumb]:rounded-full">
                   {sameTypeContent.map((item, index) => (
-                    <Link to={`/impact-pulse/${createSecureSlug(item.title, item.type, item.id)}`} key={`related-same-${item.type}-${item.id}-${index}`} className="group flex gap-4 items-start p-2 -ml-2 rounded-xl hover:bg-white hover:shadow-sm transition-all">
+                    <Link to={`/impact-pulse/${createSecureSlug(item.title, item.type, item.slug || item.id)}`} key={`related-same-${item.type}-${item.id}-${index}`} className="group flex gap-4 items-start p-2 -ml-2 rounded-xl hover:bg-white hover:shadow-sm transition-all">
                       <div className="w-28 h-20 shrink-0 rounded-xl overflow-hidden relative bg-gray-100">
                         <img 
                           src={item.type === 'article' ? item.featured_image : item.thumbnail} 
@@ -425,7 +430,7 @@ export default function ImpactPulseReader() {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {oppositeTypeContent.map((item, index) => (
-              <Link to={`/impact-pulse/${createSecureSlug(item.title, item.type, item.id)}`} key={`related-opp-desk-${item.type}-${item.id}-${index}`} className="group block bg-white border border-gray-100 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all">
+              <Link to={`/impact-pulse/${createSecureSlug(item.title, item.type, item.slug || item.id)}`} key={`related-opp-desk-${item.type}-${item.id}-${index}`} className="group block bg-white border border-gray-100 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all">
                 <div className="aspect-video bg-gray-100 relative overflow-hidden">
                   <img
                     src={item.type === 'article' ? item.featured_image : item.thumbnail}
@@ -465,7 +470,7 @@ export default function ImpactPulseReader() {
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
             {unifiedContent.map((item, index) => (
-              <Link to={`/impact-pulse/${createSecureSlug(item.title, item.type, item.id)}`} key={`related-uni-${item.type}-${item.id}-${index}`} className="group block bg-white border border-gray-100 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all">
+              <Link to={`/impact-pulse/${createSecureSlug(item.title, item.type, item.slug || item.id)}`} key={`related-uni-${item.type}-${item.id}-${index}`} className="group block bg-white border border-gray-100 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all">
                 <div className="aspect-video bg-gray-100 relative overflow-hidden">
                   <img
                     src={item.type === 'article' ? item.featured_image : item.thumbnail}

@@ -64,7 +64,7 @@ export default function ImpactPulse() {
       .map(a => {
         const timeStr = a.reading_time || '5 min';
         return {
-          id: a.id,
+          id: a.slug || a.id, // CRITICAL FIX: Use slug for routing
           title: a.title,
           cType: 'article',
           displayDate: a.published_date || a.created_at || now.toISOString(),
@@ -82,7 +82,7 @@ export default function ImpactPulse() {
         return pubDate <= now;
       })
       .map(v => ({
-        id: v.id,
+        id: v.slug || v.id, // CRITICAL FIX: Use slug for routing
         title: v.title,
         cType: 'video',
         displayDate: v.published_date || v.created_at || now.toISOString(),
@@ -181,7 +181,6 @@ export default function ImpactPulse() {
               </button>
             </div>
 
-            {/* Container: Solid Orange. Active Selector: Solid Brown */}
             <div className="flex bg-secondary p-1.5 rounded-full border border-secondary shadow-inner shrink-0 w-full lg:w-auto">
               {[
                 { id: 'all', label: 'All' },

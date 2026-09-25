@@ -1,100 +1,125 @@
-import { Link } from 'react-router-dom'
+import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { ArrowRight, ArrowUpRight } from 'lucide-react';
 
 export default function PodcastFeed() {
-  return (
-    <section className="py-20 px-6 bg-orange-50/30">
-      <div className="max-w-6xl mx-auto">
+  const [latestEpisode, setLatestEpisode] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchPodcasts = async () => {
+      try {
+        const response = await fetch('http://127.0.0.1:8000/api/content/podcasts/');
+        const data = await response.json();
         
-        {/* Section Header */}
-        <div className="flex justify-between items-end mb-10">
-          <div>
-            <h2 className="text-3xl md:text-4xl font-heading font-semibold text-primary mb-2">
-              Latest Conversations
+        const now = new Date();
+        const liveEpisodes = data.filter(ep => ep.is_published && new Date(ep.published_date) <= now);
+        
+        liveEpisodes.sort((a, b) => new Date(b.published_date) - new Date(a.published_date));
+        
+        if (liveEpisodes.length > 0) {
+          setLatestEpisode(liveEpisodes[0]);
+        }
+      } catch (error) {
+        console.error("Error fetching podcasts:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchPodcasts();
+  }, []);
+
+  if (isLoading || !latestEpisode) return null; 
+
+  const videoIdMatch = latestEpisode.embed_url.match(/^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/);
+  const videoId = (videoIdMatch && videoIdMatch[2].length === 11) ? videoIdMatch[2] : '';
+  const highResThumb = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+  const fallbackThumb = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+
+  return (
+    <section className="py-24 px-6 bg-orange-50/30 border-b border-gray-100">
+      <div className="max-w-7xl mx-auto">
+        
+        {/* Header Section (Scaled up to match the Podcasts hero) */}
+        <div className="mb-16 w-full">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-6 w-full">
+            <h2 className="text-5xl md:text-7xl font-heading font-black text-primary leading-tight">
+              Latest <br/><span className="text-secondary">Conversation.</span>
             </h2>
-            <p className="text-gray-600 font-body text-lg">
-              Tune into the Friends from Afrika podcast.
-            </p>
+            
+            <div className="hidden md:flex items-center justify-end gap-6 md:mb-3 md:ml-auto">
+              <Link 
+                to="/podcasts" 
+                className="flex items-center gap-2 text-sm font-bold uppercase tracking-widest text-secondary hover:text-primary transition-colors group"
+              >
+                Explore Library <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </Link>
+            </div>
           </div>
-          <Link 
-            to="/friends" 
-            className="hidden md:inline-block text-secondary font-medium hover:underline"
-          >
-            View All Episodes &rarr;
-          </Link>
+          
+          <p className="text-xl text-gray-600 font-medium max-w-3xl">
+            Tune into the Friends from Afrika 4 Afrika podcast. Exclusive panels, off-the-record Q&As, and discussions with industry leaders.
+          </p>
         </div>
 
-        {/* Podcast Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Hero Grid Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-20 items-center">
           
-          {/* Hero Episode (Spans 2 columns on large screens) */}
-          <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex flex-col md:flex-row">
-            <div className="w-full md:w-2/5 bg-gray-200 h-64 md:h-auto flex items-center justify-center">
-              <span className="text-gray-400 font-body text-sm">Cover Art Placeholder</span>
+          {/* Static Image Linking to Inner Page */}
+          <Link 
+            to={`/podcasts/${latestEpisode.slug}`} 
+            className="lg:col-span-8 w-full aspect-video bg-gray-100 rounded-3xl overflow-hidden shadow-xl shadow-primary/5 block group border border-gray-200/50"
+          >
+            <img 
+              src={highResThumb}
+              alt={latestEpisode.title}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+              onError={(e) => { e.target.src = fallbackThumb; }}
+            />
+          </Link>
+          
+          {/* Typography Content Side */}
+          <div className="lg:col-span-4 flex flex-col justify-center">
+            <div className="text-[10px] font-bold uppercase tracking-widest text-secondary mb-4 border-b border-secondary/20 pb-4 inline-block w-fit">
+              Latest Episode
             </div>
-            <div className="w-full md:w-3/5 p-8 flex flex-col justify-center">
-              <span className="text-xs font-bold tracking-wider text-primary uppercase mb-2">Newest Episode</span>
-              <h3 className="text-2xl font-heading font-semibold text-gray-900 mb-3">
-                Building the Future of African Tech
-              </h3>
-              <p className="text-gray-600 font-body mb-6 line-clamp-3">
-                In this episode, we sit down with leading innovators to discuss how grassroots technology is reshaping the economic landscape across the continent.
-              </p>
-              {/* Fake Audio Player Placeholder */}
-              <div className="w-full h-12 bg-gray-100 rounded-full flex items-center px-4">
-                <div className="w-8 h-8 bg-secondary rounded-full flex-shrink-0"></div>
-                <div className="h-2 bg-gray-300 rounded-full w-full mx-4"></div>
-                <span className="text-xs text-gray-500 font-body">00:00</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Recent Episodes Column */}
-          <div className="flex flex-col gap-8">
             
-            {/* Small Card 1 */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex items-center p-4">
-              <div className="w-24 h-24 bg-gray-200 rounded flex-shrink-0 flex items-center justify-center">
-                <span className="text-gray-400 text-xs text-center px-1">Art</span>
-              </div>
-              <div className="ml-4">
-                <h4 className="font-heading font-semibold text-gray-900 line-clamp-2 mb-1">
-                  The Creative Economy's Rise
-                </h4>
-                <Link to="/friends" className="text-sm text-secondary font-medium hover:underline">
-                  Listen Now
-                </Link>
-              </div>
-            </div>
+            <h3 className="text-3xl lg:text-4xl font-heading font-black text-primary mb-6 leading-tight">
+              {latestEpisode.title}
+            </h3>
+            
+            <div 
+              className="text-gray-600 prose prose-sm max-w-none line-clamp-4 leading-relaxed mb-8"
+              dangerouslySetInnerHTML={{ __html: latestEpisode.description }}
+            />
 
-            {/* Small Card 2 */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex items-center p-4">
-              <div className="w-24 h-24 bg-gray-200 rounded flex-shrink-0 flex items-center justify-center">
-                <span className="text-gray-400 text-xs text-center px-1">Art</span>
+            <div className="flex items-center justify-between mt-auto">
+              <div className="text-xs font-bold uppercase tracking-widest text-gray-400">
+                {new Date(latestEpisode.published_date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
               </div>
-              <div className="ml-4">
-                <h4 className="font-heading font-semibold text-gray-900 line-clamp-2 mb-1">
-                  Redefining African Leadership
-                </h4>
-                <Link to="/friends" className="text-sm text-secondary font-medium hover:underline">
-                  Listen Now
-                </Link>
-              </div>
+              <Link 
+                to={`/podcasts/${latestEpisode.slug}`} 
+                className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest text-secondary hover:text-primary transition-colors"
+              >
+                Listen Now <ArrowUpRight className="w-4 h-4" />
+              </Link>
             </div>
-
           </div>
+
         </div>
 
         {/* Mobile View All Button */}
-        <div className="mt-8 md:hidden text-center">
+        <div className="mt-12 md:hidden text-center">
           <Link 
-            to="/friends" 
-            className="inline-block bg-white border border-gray-200 text-primary font-body font-medium px-6 py-3 rounded-md w-full"
+            to="/podcasts" 
+            className="inline-flex items-center justify-center gap-2 text-sm font-bold uppercase tracking-widest text-secondary hover:text-primary transition-colors group"
           >
-            View All Episodes
+            Explore Library <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
           </Link>
         </div>
 
       </div>
     </section>
-  )
+  );
 }

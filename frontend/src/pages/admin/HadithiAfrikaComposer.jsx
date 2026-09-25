@@ -147,7 +147,7 @@ export default function HadithiAfrikaComposer() {
               name="title"
               value={formData.title}
               onChange={handleChange}
-              placeholder="e.g., Breaking Through" 
+              placeholder="Enter the film title..." 
               className="w-full text-2xl font-heading font-bold text-primary placeholder:text-gray-300 border-none focus:outline-none focus:ring-0 p-0 bg-transparent"
             />
           </div>
