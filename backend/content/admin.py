@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Category, Article, VideoStory, Film
+from .models import Category, Article, VideoStory, Film, PodcastEpisode
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
@@ -26,5 +26,13 @@ class FilmAdmin(admin.ModelAdmin):
     list_display = ('title', 'director', 'release_year', 'is_featured', 'published_date')
     list_filter = ('is_featured', 'release_year')
     search_fields = ('title', 'director', 'description')
+    prepopulated_fields = {'slug': ('title',)}
+    list_editable = ('is_featured',)
+
+@admin.register(PodcastEpisode)
+class PodcastEpisodeAdmin(admin.ModelAdmin):
+    list_display = ('title', 'host', 'is_featured', 'published_date')
+    list_filter = ('is_featured', 'published_date')
+    search_fields = ('title', 'host', 'description')
     prepopulated_fields = {'slug': ('title',)}
     list_editable = ('is_featured',)
