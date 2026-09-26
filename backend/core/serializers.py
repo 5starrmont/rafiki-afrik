@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import SiteSettings, DynamicSpotlight, TeamMember, WaitlistEntry, Service
+from .models import SiteSettings, DynamicSpotlight, TeamMember, Service
 
 # --- MODULE 2 ---
 class SiteSettingsSerializer(serializers.ModelSerializer):
@@ -16,12 +16,6 @@ class DynamicSpotlightSerializer(serializers.ModelSerializer):
 class TeamMemberSerializer(serializers.ModelSerializer):
     class Meta:
         model = TeamMember
-        fields = '__all__'
-
-# --- MODULE 5 ---
-class WaitlistEntrySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = WaitlistEntry
         fields = '__all__'
 
 # --- MODULE 7 ---

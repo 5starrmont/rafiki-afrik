@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import SiteSettings, DynamicSpotlight, TeamMember, WaitlistEntry, Service
+from .models import SiteSettings, DynamicSpotlight, TeamMember, Service
 
 @admin.register(SiteSettings)
 class SiteSettingsAdmin(admin.ModelAdmin):
@@ -20,13 +20,6 @@ class TeamMemberAdmin(admin.ModelAdmin):
     list_filter = ('is_active', 'role')
     search_fields = ('name', 'role')
     list_editable = ('order', 'is_active') 
-
-@admin.register(WaitlistEntry)
-class WaitlistEntryAdmin(admin.ModelAdmin):
-    list_display = ('full_name', 'email', 'country', 'organization', 'submitted_at')
-    list_filter = ('country', 'submitted_at')
-    search_fields = ('full_name', 'email', 'organization')
-    readonly_fields = ('submitted_at',) 
 
 @admin.register(Service)
 class ServiceAdmin(admin.ModelAdmin):

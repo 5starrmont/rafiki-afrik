@@ -1,9 +1,9 @@
 from rest_framework import viewsets, mixins
-from .models import Category, Article, VideoStory, Film, NewsletterSubscriber, PodcastEpisode
+from .models import Category, Article, VideoStory, Film, PodcastEpisode
 from .serializers import (
     CategorySerializer, ArticleSerializer, 
     VideoStorySerializer, FilmSerializer, 
-    NewsletterSubscriberSerializer, PodcastEpisodeSerializer
+    PodcastEpisodeSerializer
 )
 
 class CategoryViewSet(viewsets.ModelViewSet):
@@ -24,10 +24,6 @@ class FilmViewSet(viewsets.ModelViewSet):
     queryset = Film.objects.all().order_by('-published_date')
     serializer_class = FilmSerializer
     lookup_field = 'slug'
-
-class NewsletterSubscriberViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
-    queryset = NewsletterSubscriber.objects.all()
-    serializer_class = NewsletterSubscriberSerializer
 
 class PodcastEpisodeViewSet(viewsets.ModelViewSet):
     queryset = PodcastEpisode.objects.all().order_by('-published_date')

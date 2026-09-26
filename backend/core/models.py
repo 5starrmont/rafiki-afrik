@@ -66,24 +66,6 @@ class TeamMember(models.Model):
         return self.name
 
 
-# --- WAITLIST ---
-
-class WaitlistEntry(models.Model):
-    full_name = models.CharField(max_length=200)
-    email = models.EmailField(unique=True)
-    phone_number = models.CharField(max_length=20, blank=True, null=True)
-    country = models.CharField(max_length=100)
-    organization = models.CharField(max_length=200, blank=True, null=True)
-    submitted_at = models.DateTimeField(default=timezone.now)
-
-    class Meta:
-        verbose_name_plural = "Waitlist Entries"
-        ordering = ['-submitted_at']
-
-    def __str__(self):
-        return f"{self.full_name} - {self.email}"
-
-
 # --- SERVICES ---
 
 class Service(models.Model):

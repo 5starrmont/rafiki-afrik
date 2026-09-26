@@ -77,15 +77,6 @@ class Film(models.Model):
         return self.title
 
 
-class NewsletterSubscriber(models.Model):
-    email = models.EmailField(unique=True)
-    subscribed_at = models.DateTimeField(auto_now_add=True)
-    is_active = models.BooleanField(default=True, help_text="Uncheck if the user unsubscribes.")
-
-    def __str__(self):
-        return self.email
-
-
 class PodcastEpisode(models.Model):
     title = models.CharField(max_length=255)
     slug = models.SlugField(unique=True, blank=True)
